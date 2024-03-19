@@ -22,6 +22,8 @@
 	ChartJS.register(Title, LineElement, LinearScale, PointElement, CategoryScale);
 
 	const targetEpochs = 10;
+	const crossoverRate = 0.9;
+	const mutationRate = 0.02;
 
 	const chartData = {
 		labels: Array.from({ length: targetEpochs + 1 }, (_, i) => i),
@@ -100,28 +102,30 @@
 					}
 				}
 
-				const offspring_count = randomInteger(0, 2);
+				if (Math.random() <= crossoverRate) {
+					const offspring_count = randomInteger(1, 2);
 
-				for (let i = 0; i < offspring_count; i++) {
-					const offspring = uniformCrossover(
-						chrosmosomes[first_pick].data,
-						chrosmosomes[second_pick].data
-					);
-					const preMutation = offspring.slice();
+					for (let i = 0; i < offspring_count; i++) {
+						const offspring = uniformCrossover(
+							chrosmosomes[first_pick].data,
+							chrosmosomes[second_pick].data
+						);
+						const preMutation = offspring.slice();
 
-					// let mutated = false;
-					// if (randomInteger(1, 10) <= 3) {
-					mutate2(offspring, 0, 3);
-					// mutated = true;
-					// }
+						// let mutated = false;
+						// if (randomInteger(1, 10) <= 3) {
+						mutate2(offspring, 0, 3, mutationRate);
+						// mutated = true;
+						// }
 
-					const chrosmosome = new Chrosmosome(offspring);
-					chrosmosome.parentChromosomes = [chrosmosomes[first_pick], chrosmosomes[second_pick]];
-					// if (mutated)
-					chrosmosome.preMutatedState = preMutation;
+						const chrosmosome = new Chrosmosome(offspring);
+						chrosmosome.parentChromosomes = [chrosmosomes[first_pick], chrosmosomes[second_pick]];
+						// if (mutated)
+						chrosmosome.preMutatedState = preMutation;
 
-					if (chrosmosome.cekMuat()) {
-						new_chrosmosomes.push(chrosmosome);
+						if (chrosmosome.cekMuat()) {
+							new_chrosmosomes.push(chrosmosome);
+						}
 					}
 				}
 			}
@@ -233,24 +237,27 @@
 						</div>
 					{/each}
 				</div>
-				<b>Chromosome Parents:</b>
+
 				<div>
-					{#each epochSummary.bestChromosome.parentChromosomes as parentChromosome, parentIdx}
-						<div class="flex border-1">
-							<div class="pr-2">Parent {parentIdx + 1}:</div>
-							{#each parentChromosome.data as gene}
-								<div
-									class:bg-blue-200={gene === 0}
-									class:bg-green-200={gene === 1}
-									class:bg-yellow-200={gene === 2}
-									class:bg-red-200={gene === 3}
-									class="px-2 py-1"
-								>
-									{gene}
-								</div>
-							{/each}
-						</div>
-					{/each}
+					{#if epochSummary.bestChromosome.parentChromosomes.length > 0}
+						<b>Chromosome Parents:</b>
+						{#each epochSummary.bestChromosome.parentChromosomes as parentChromosome, parentIdx}
+							<div class="flex border-1">
+								<div class="pr-2">Parent {parentIdx + 1}:</div>
+								{#each parentChromosome.data as gene}
+									<div
+										class:bg-blue-200={gene === 0}
+										class:bg-green-200={gene === 1}
+										class:bg-yellow-200={gene === 2}
+										class:bg-red-200={gene === 3}
+										class="px-2 py-1"
+									>
+										{gene}
+									</div>
+								{/each}
+							</div>
+						{/each}
+					{/if}
 
 					{#if epochSummary.bestChromosome.preMutatedState !== null}
 						<div class="flex">

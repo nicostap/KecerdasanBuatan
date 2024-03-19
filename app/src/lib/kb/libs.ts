@@ -124,10 +124,10 @@ export function mutate(array, min, max) {
 	}
 }
 
-export function mutate2(array: number[], min: number, max: number) {
+export function mutate2(array: number[], min: number, max: number, mutationRate: number) {
 	for (let i = 0; i < array.length; i++) {
 		// 2% chance to mutate each gene
-		if (randomInteger(0, 49) == 0) {
+		if (Math.random() <= mutationRate) {
 			// Either subtract or add 1 to the gene
 			array[i] += randomInteger(0, 1) == 0 ? -1 : 1;
 
