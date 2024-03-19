@@ -256,16 +256,22 @@
 						<div class="flex">
 							<div class="pr-2">Pre-mutation:</div>
 							<div class="flex border-1">
-								{#each epochSummary.bestChromosome.preMutatedState as gene}
-									<div
-										class:bg-blue-200={gene === 0}
-										class:bg-green-200={gene === 1}
-										class:bg-yellow-200={gene === 2}
-										class:bg-red-200={gene === 3}
-										class="px-2 py-1"
-									>
-										{gene}
-									</div>
+								{#each epochSummary.bestChromosome.preMutatedState as gene, geneIdx}
+									{#if epochSummary.bestChromosome.data[geneIdx] == gene}
+										<div class="px-2 py-1 bg-gray-200">
+											{gene}
+										</div>
+									{:else}
+										<div
+											class:bg-blue-200={gene === 0}
+											class:bg-green-200={gene === 1}
+											class:bg-yellow-200={gene === 2}
+											class:bg-red-200={gene === 3}
+											class="px-2 py-1"
+										>
+											{gene}
+										</div>
+									{/if}
 								{/each}
 							</div>
 						</div>
