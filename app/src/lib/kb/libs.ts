@@ -123,3 +123,20 @@ export function mutate(array, min, max) {
 		}
 	}
 }
+
+export function mutate2(array: number[], min: number, max: number) {
+	for (let i = 0; i < array.length; i++) {
+		// 2% chance to mutate each gene
+		if (randomInteger(0, 49) == 0) {
+			// Either subtract or add 1 to the gene
+			array[i] += randomInteger(0, 1) == 0 ? -1 : 1;
+
+			// If the gene is out of bounds, add or subtract 2 to the gene
+			if (array[i] < min) {
+				array[i] += 2;
+			} else if (array[i] > max) {
+				array[i] -= 2;
+			}
+		}
+	}
+}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { mutate, randomInteger, uniformCrossover, wait } from '$lib/kb/libs';
+	import { mutate, mutate2, randomInteger, uniformCrossover, wait } from '$lib/kb/libs';
 	import { Chrosmosome, compareByFitness, items } from '$lib/kb/script';
 	import { Line } from 'svelte-chartjs';
 	import {
@@ -109,15 +109,16 @@
 					);
 					const preMutation = offspring.slice();
 
-					let mutated = false;
-					if (randomInteger(1, 10) <= 3) {
-						mutate(offspring, 0, 3);
-						mutated = true;
-					}
+					// let mutated = false;
+					// if (randomInteger(1, 10) <= 3) {
+					mutate2(offspring, 0, 3);
+					// mutated = true;
+					// }
 
 					const chrosmosome = new Chrosmosome(offspring);
 					chrosmosome.parentChromosomes = [chrosmosomes[first_pick], chrosmosomes[second_pick]];
-					if (mutated) chrosmosome.preMutatedState = preMutation;
+					// if (mutated)
+					chrosmosome.preMutatedState = preMutation;
 
 					if (chrosmosome.cekMuat()) {
 						new_chrosmosomes.push(chrosmosome);
@@ -253,7 +254,7 @@
 
 					{#if epochSummary.bestChromosome.preMutatedState !== null}
 						<div class="flex">
-							<b>Before Mutation:</b>
+							<div class="pr-2">Pre-mutation:</div>
 							<div class="flex border-1">
 								{#each epochSummary.bestChromosome.preMutatedState as gene}
 									<div
