@@ -17,6 +17,7 @@
 	import '../app.css';
 
 	export const prerender = false;
+	export const ssr = false;
 
 	ChartJS.register(Title, LineElement, LinearScale, PointElement, CategoryScale);
 
@@ -106,10 +107,18 @@
 						chrosmosomes[first_pick].data,
 						chrosmosomes[second_pick].data
 					);
+					const preMutation = offspring.slice();
+
+					let mutated = false;
 					if (randomInteger(1, 10) <= 3) {
 						mutate(offspring, 0, 3);
+						mutated = true;
 					}
+
 					const chrosmosome = new Chrosmosome(offspring);
+					chrosmosome.parentChromosomes = [chrosmosomes[first_pick], chrosmosomes[second_pick]];
+					if (mutated) chrosmosome.preMutatedState = preMutation;
+
 					if (chrosmosome.cekMuat()) {
 						new_chrosmosomes.push(chrosmosome);
 					}
@@ -206,20 +215,61 @@
 
 	<h1 class="font-bold text-xl">Epoch Summary</h1>
 	{#each epochSummaries as epochSummary}
-		<div>
+		<div class="mb-4">
 			<b>Epoch {epochSummary.epoch}</b>: Best fitness = {epochSummary.bestFitness}
-			<div class="flex">
-				{#each epochSummary.bestChromosome.data as gene}
-					<div
-						class:bg-blue-200={gene === 0}
-						class:bg-green-200={gene === 1}
-						class:bg-yellow-200={gene === 2}
-						class:bg-red-200={gene === 3}
-						class="px-2 py-1"
-					>
-						{gene}
-					</div>
-				{/each}
+			<div>
+				<b>Best Chromosome:</b>
+				<div class="flex border-1">
+					{#each epochSummary.bestChromosome.data as gene}
+						<div
+							class:bg-blue-200={gene === 0}
+							class:bg-green-200={gene === 1}
+							class:bg-yellow-200={gene === 2}
+							class:bg-red-200={gene === 3}
+							class="px-2 py-1"
+						>
+							{gene}
+						</div>
+					{/each}
+				</div>
+				<b>Chromosome Parents:</b>
+				<div>
+					{#each epochSummary.bestChromosome.parentChromosomes as parentChromosome, parentIdx}
+						<div class="flex border-1">
+							<div class="pr-2">Parent {parentIdx + 1}:</div>
+							{#each parentChromosome.data as gene}
+								<div
+									class:bg-blue-200={gene === 0}
+									class:bg-green-200={gene === 1}
+									class:bg-yellow-200={gene === 2}
+									class:bg-red-200={gene === 3}
+									class="px-2 py-1"
+								>
+									{gene}
+								</div>
+							{/each}
+						</div>
+					{/each}
+
+					{#if epochSummary.bestChromosome.preMutatedState !== null}
+						<div class="flex">
+							<b>Before Mutation:</b>
+							<div class="flex border-1">
+								{#each epochSummary.bestChromosome.preMutatedState as gene}
+									<div
+										class:bg-blue-200={gene === 0}
+										class:bg-green-200={gene === 1}
+										class:bg-yellow-200={gene === 2}
+										class:bg-red-200={gene === 3}
+										class="px-2 py-1"
+									>
+										{gene}
+									</div>
+								{/each}
+							</div>
+						</div>
+					{/if}
+				</div>
 			</div>
 		</div>
 	{/each}

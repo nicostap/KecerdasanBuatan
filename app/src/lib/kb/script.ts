@@ -52,6 +52,9 @@ export class Chrosmosome {
 	static hargaMenengah = 20000;
 	static hargaBesar = 30000;
 
+	public preMutatedState: number[] | null = null;
+	public parentChromosomes: Chrosmosome[] = [];
+
 	fitness: number;
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	routes: any[];
