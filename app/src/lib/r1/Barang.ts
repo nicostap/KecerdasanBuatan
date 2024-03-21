@@ -12,5 +12,7 @@ export class Barang {
 		return this.width * this.height * this.depth;
 	}
 
-	public getPrice() {}
+	public getWeight() {
+		return this.weight;
+	}
 }

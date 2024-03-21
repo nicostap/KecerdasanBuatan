@@ -12,3 +12,9 @@ export function xoshiro128ss(a: number, b: number, c: number, d: number) {
 		return (r >>> 0) / 4294967296;
 	};
 }
+
+export const prandom = xoshiro128ss(1, 2, 3, 4);
+
+export function randomInteger(lowerBound: number, upperBound: number) {
+	return Math.floor(prandom() * (upperBound - lowerBound + 1)) + lowerBound;
+}
