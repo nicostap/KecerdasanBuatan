@@ -1,4 +1,4 @@
-import { prandom, randomInteger } from './Rand';
+import type { Random } from './Random';
 
 export enum CrossoverType {
 	OnePoint,
@@ -6,32 +6,54 @@ export enum CrossoverType {
 	Uniform
 }
 
+export const CrossoverTypeLabels = {
+	[CrossoverType.OnePoint]: 'One Point',
+	[CrossoverType.TwoPoint]: 'Two Point',
+	[CrossoverType.Uniform]: 'Uniform'
+} as const;
+
 export enum MutationType {
 	RandomInteger,
 	SwapInteger,
 	AdditionSubtractionInteger
 }
 
+export const MutationTypeLabels = {
+	[MutationType.RandomInteger]: 'Random Integer',
+	[MutationType.SwapInteger]: 'Swap Integer',
+	[MutationType.AdditionSubtractionInteger]: 'Addition/Subtraction Integer'
+} as const;
+
 export class Chromosome {
+	public calculatedFitness: number | null = null;
+	static rand: Random;
+
 	constructor(public genes: number[]) {}
 
 	public clone() {
 		return new Chromosome([...this.genes]);
 	}
 
-	public crossover(withChromosome: Chromosome, type: CrossoverType, rate: number) {
+	public equals(chromosome: Chromosome) {
+		return this.genes.every((gene, i) => gene === chromosome.genes[i]);
+	}
+
+	public crossover(withChromosome: Chromosome, type: CrossoverType, rate?: number) {
 		switch (type) {
 			case CrossoverType.OnePoint:
 				return this.onePointCrossover(withChromosome);
 			case CrossoverType.TwoPoint:
 				return this.twoPointCrossover(withChromosome);
 			case CrossoverType.Uniform:
+				if (rate === undefined) {
+					throw new Error('Uniform crossover requires a rate.');
+				}
 				return this.uniformCrossover(withChromosome, rate);
 		}
 	}
 
 	protected onePointCrossover(withChromosome: Chromosome) {
-		const crossoverPoint = Math.floor(prandom() * this.genes.length);
+		const crossoverPoint = Math.floor(Chromosome.rand.next() * this.genes.length);
 		const newGenes = this.genes
 			.slice(0, crossoverPoint)
 			.concat(withChromosome.genes.slice(crossoverPoint));
@@ -39,8 +61,8 @@ export class Chromosome {
 	}
 
 	protected twoPointCrossover(withChromosome: Chromosome) {
-		const crossoverPoint1 = Math.floor(prandom() * this.genes.length);
-		const crossoverPoint2 = Math.floor(prandom() * this.genes.length);
+		const crossoverPoint1 = Math.floor(Chromosome.rand.next() * this.genes.length);
+		const crossoverPoint2 = Math.floor(Chromosome.rand.next() * this.genes.length);
 		const start = Math.min(crossoverPoint1, crossoverPoint2);
 		const end = Math.max(crossoverPoint1, crossoverPoint2);
 		const newGenes = this.genes
@@ -52,7 +74,7 @@ export class Chromosome {
 
 	protected uniformCrossover(withChromosome: Chromosome, rate: number) {
 		const newGenes = this.genes.map((gene, i) => {
-			if (prandom() < rate) {
+			if (Chromosome.rand.next() < rate) {
 				return withChromosome.genes[i];
 			}
 			return gene;
@@ -73,8 +95,8 @@ export class Chromosome {
 
 	protected randomIntegerMutation(rate: number, lowerBound = 0, upperBound = 1) {
 		const newGenes = this.genes.map((gene) => {
-			if (prandom() < rate) {
-				return randomInteger(lowerBound, upperBound);
+			if (Chromosome.rand.next() < rate) {
+				return Chromosome.rand.nextIntInclusive(lowerBound, upperBound);
 			}
 			return gene;
 		});
@@ -84,8 +106,8 @@ export class Chromosome {
 	protected swapIntegerMutation(rate: number) {
 		const newGenes = [...this.genes];
 		for (let i = 0; i < newGenes.length; i++) {
-			if (prandom() < rate) {
-				const j = randomInteger(0, newGenes.length - 1);
+			if (Chromosome.rand.next() < rate) {
+				const j = Chromosome.rand.nextIntInclusive(0, newGenes.length - 1);
 				[newGenes[i], newGenes[j]] = [newGenes[j], newGenes[i]];
 			}
 		}
@@ -94,8 +116,8 @@ export class Chromosome {
 
 	protected additionSubtractionIntegerMutation(rate: number, lowerBound = 0, upperBound = 1) {
 		const newGenes = this.genes.map((gene) => {
-			if (prandom() < rate) {
-				let result = gene + randomInteger(0, 1) === 0 ? -1 : 1;
+			if (Chromosome.rand.next() < rate) {
+				let result = gene + Chromosome.rand.nextIntInclusive(0, 1) === 0 ? -1 : 1;
 
 				// If the result is out of bounds, then we roll it over to the other side.
 				if (result < lowerBound) {
@@ -108,6 +130,4 @@ export class Chromosome {
 		});
 		return new Chromosome(newGenes);
 	}
-
-	public getFitness() {}
 }

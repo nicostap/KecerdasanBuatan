@@ -48,7 +48,7 @@ export function dijkstra(graph, src) {
 	return dist;
 }
 
-export function generateDijkstra(graph) {
+export function generateDijkstra(graph): number[][] {
 	const dijkstraMap = new Array(graph.length);
 	for (let i = 0; i < graph.length; i++) {
 		dijkstraMap[i] = dijkstra(graph, i);

@@ -1,4 +1,4 @@
-import type { Barang } from '../Barang';
+import type { VehicleLoad } from '../VehicleLoad';
 import { AbstractDeliveryVehicle } from './AbstractDeliveryVehicle';
 
 export class MobilBox extends AbstractDeliveryVehicle {
@@ -11,10 +11,23 @@ export class MobilBox extends AbstractDeliveryVehicle {
 		public packingFactor: number,
 
 		public pricePerKm: number,
-		public fuelRatio: number,
+		public fuelConsumptionPerKm: number,
 		public fuelPricePerLiter: number
 	) {
 		super();
+	}
+
+	public copy() {
+		return new MobilBox(
+			this.capacityWidth,
+			this.capacityHeight,
+			this.capacityDepth,
+			this.capacityWeight,
+			this.packingFactor,
+			this.pricePerKm,
+			this.fuelConsumptionPerKm,
+			this.fuelPricePerLiter
+		);
 	}
 
 	private getCapacityVolume() {
@@ -22,14 +35,14 @@ export class MobilBox extends AbstractDeliveryVehicle {
 	}
 
 	private getFuelPrice(distanceKm: number) {
-		return distanceKm * this.fuelRatio * this.fuelPricePerLiter;
+		return distanceKm * this.fuelConsumptionPerKm * this.fuelPricePerLiter;
 	}
 
 	public getCost(distanceKm: number) {
 		return this.getFuelPrice(distanceKm) + this.pricePerKm * distanceKm;
 	}
 
-	public getFitScore(items: Barang[]) {
+	public getFitScore(items: VehicleLoad[]) {
 		let totalVolume = 0;
 		let totalWeight = 0;
 
