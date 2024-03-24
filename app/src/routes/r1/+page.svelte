@@ -16,12 +16,14 @@
 	} from '$lib/r1/Chromosome';
 	import { MobilBox } from '$lib/r1/vehicles/MobilBox';
 	import Truck from './Truck.svelte';
-	import { generateDijkstra } from '$lib/kb/libs';
+	import { generateDijkstra, randomInteger } from '$lib/kb/libs';
 	import Barang from './Barang.svelte';
 	import { VehicleLoad } from '$lib/r1/VehicleLoad';
 	import TruckSeed from './TruckSeed.svelte';
 	import BarangSeed from './BarangSeed.svelte';
 	import EpochSummary from './EpochSummary.svelte';
+	import { Random } from '$lib/r1/Random';
+	import { randomStep } from '$lib/r1/Rand';
 
 	const defaultMobilBoxParams: ConstructorParameters<typeof MobilBox> = [
 		100, 100, 100, 100, 0.8, 1000, 10000, 0.1
@@ -45,23 +47,128 @@
 	const cityMap = generateDijkstra(cityWeights);
 
 	let gaSeed: string = '1415926535897932384626433832795028841971';
+	let random = Random.fromString(gaSeed);
 	let targetEpochs: number = 10;
 	let targetIndividuals: number = 500;
 	let crossoverRate = 0.7;
 	let crossoverUniformRate = 0.5;
 	let mutationRate = 0.02;
-	let crossoverMethod = String(CrossoverType.Uniform);
-	let mutationMethod = String(MutationType.AdditionSubtractionInteger);
+	
+	// These should be strings for the labels to work
+	let crossoverMethod = CrossoverType.Uniform;
+	let mutationMethod = MutationType.AdditionSubtractionInteger;
 
 	let epochSummaries: EpochSummaryData[] = [
 		{
 			epoch: 0,
 			bestFitness: 0,
-			bestChromosome: new Chromosome([])
+			bestChromosome: new Chromosome([], random)
 		}
 	];
 
-	async function runGa() {}
+	async function runGa() {
+		// Mapping
+		const province_map = [
+			[0, 61, 35, 0, 91, 12],
+			[61, 0, 0, 0, 0, 90],
+			[35, 0, 0, 100, 41, 0],
+			[0, 0, 100, 0, 23, 54],
+			[91, 0, 41, 23, 0, 0],
+			[12, 90, 0, 54, 0, 0]
+		];
+		const map = generateDijkstra(province_map);
+
+		// Seed
+		random = Random.fromString(gaSeed);
+		let chromosomes = [];
+
+		// Generate initial population
+		while (chromosomes.length < targetIndividuals) {
+			const data = [];
+			for (let i = 0; i < vehicleLoad.length; i++) {
+				// -1 indicates delayed sending
+				data.push(random.nextIntInclusive(-1, vehicles.length - 1));
+			}
+
+			const chromosome = new Chromosome(data, random);
+
+			for (let i = 0; i < vehicles.length; i++) {
+				const load = [];
+				for (let j = 0; j < vehicleLoad.length; j++) {
+					if (data[j] == i) load.push(vehicleLoad[j]);
+				}
+				chromosome.calculatedFitness += vehicles[i].getFitScore(load);
+			}
+			if (chromosome.calculatedFitness == 0) {
+				chromosomes.push(chromosome);
+			}
+		}
+
+		// Calculate initial fitness values
+		for (let i = 0; i < chromosomes.length; i++) {
+			for (let j = 0; j < vehicles.length; j++) {
+				const load = [];
+				for (let k = 0; k < vehicleLoad.length; k++) {
+					if (chromosomes[i].genes[k] == j) load.push(vehicleLoad[k]);
+				}
+				chromosomes[i].calculatedFitness += vehicles[j].getProfitScore(load, map);
+			}
+		}
+		chromosomes.sort(Chromosome.compareByFitness);
+
+		// Run the genetic algorithm
+		for (let gen = 0; gen < targetEpochs; gen++) {
+			const new_chromosomes = [];
+
+			// Elitism
+			new_chromosomes.push(chromosomes[chromosomes.length - 1].clone());
+
+			while (new_chromosomes.length < chromosomes.length) {
+				// Ranking Selection
+				let first_pick, second_pick;
+				first_pick = randomInteger(0, (chromosomes.length * (chromosomes.length + 1)) / 2.0);
+				for (let i = 0; i < chromosomes.length; i++) {
+					if (((i + 1) * (i + 2)) / 2.0 >= first_pick) {
+						first_pick = i;
+						break;
+					}
+				}
+				second_pick = randomInteger(0, (chromosomes.length * (chromosomes.length + 1)) / 2.0);
+				for (let i = 0; i < chromosomes.length; i++) {
+					if (((i + 1) * (i + 2)) / 2.0 >= second_pick) {
+						second_pick = i;
+						break;
+					}
+				}
+
+				// Crossover
+				let offspring = chromosomes[first_pick].crossover(
+					chromosomes[second_pick],
+					crossoverMethod,
+					crossoverRate
+				);
+
+				// Mutation
+				offspring.mutate(mutationMethod, mutationRate, 0, vehicles.length);
+
+				new_chromosomes.push(offspring);
+			}
+			chromosomes = new_chromosomes;
+
+			// Calculate initial fitness values
+			for (let i = 0; i < chromosomes.length; i++) {
+				for (let j = 0; j < vehicles.length; j++) {
+					const load = [];
+					for (let k = 0; k < vehicleLoad.length; k++) {
+						if (chromosomes[i].genes[k] == j) load.push(vehicleLoad[k]);
+					}
+					chromosomes[i].calculatedFitness += vehicles[j].getProfitScore(load, map);
+				}
+			}
+			chromosomes.sort(Chromosome.compareByFitness);
+		}
+		console.log(chromosomes);
+	}
 </script>
 
 <main class="p-4 flex flex-col gap-4">

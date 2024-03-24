@@ -1,4 +1,4 @@
-import type { Random } from './Random';
+import { Random } from './Random';
 
 export enum CrossoverType {
 	OnePoint,
@@ -25,13 +25,16 @@ export const MutationTypeLabels = {
 } as const;
 
 export class Chromosome {
-	public calculatedFitness: number | null = null;
-	static rand: Random;
+	public calculatedFitness: number = 0;
 
-	constructor(public genes: number[]) {}
+	public static compareByFitness(a: Chromosome, b: Chromosome) {
+		return a.calculatedFitness - b.calculatedFitness;
+	}
+
+	constructor(public genes: number[], public rand: Random) {}
 
 	public clone() {
-		return new Chromosome([...this.genes]);
+		return new Chromosome([...this.genes], this.rand);
 	}
 
 	public equals(chromosome: Chromosome) {
@@ -53,33 +56,33 @@ export class Chromosome {
 	}
 
 	protected onePointCrossover(withChromosome: Chromosome) {
-		const crossoverPoint = Math.floor(Chromosome.rand.next() * this.genes.length);
+		const crossoverPoint = Math.floor(this.rand.next() * this.genes.length);
 		const newGenes = this.genes
 			.slice(0, crossoverPoint)
 			.concat(withChromosome.genes.slice(crossoverPoint));
-		return new Chromosome(newGenes);
+		return new Chromosome(newGenes, this.rand);
 	}
 
 	protected twoPointCrossover(withChromosome: Chromosome) {
-		const crossoverPoint1 = Math.floor(Chromosome.rand.next() * this.genes.length);
-		const crossoverPoint2 = Math.floor(Chromosome.rand.next() * this.genes.length);
+		const crossoverPoint1 = Math.floor(this.rand.next() * this.genes.length);
+		const crossoverPoint2 = Math.floor(this.rand.next() * this.genes.length);
 		const start = Math.min(crossoverPoint1, crossoverPoint2);
 		const end = Math.max(crossoverPoint1, crossoverPoint2);
 		const newGenes = this.genes
 			.slice(0, start)
 			.concat(withChromosome.genes.slice(start, end))
 			.concat(this.genes.slice(end));
-		return new Chromosome(newGenes);
+		return new Chromosome(newGenes, this.rand);
 	}
 
 	protected uniformCrossover(withChromosome: Chromosome, rate: number) {
 		const newGenes = this.genes.map((gene, i) => {
-			if (Chromosome.rand.next() < rate) {
+			if (this.rand.next() < rate) {
 				return withChromosome.genes[i];
 			}
 			return gene;
 		});
-		return new Chromosome(newGenes);
+		return new Chromosome(newGenes, this.rand);
 	}
 
 	public mutate(type: MutationType, rate: number, lowerBound?: number, upperBound?: number) {
@@ -95,29 +98,29 @@ export class Chromosome {
 
 	protected randomIntegerMutation(rate: number, lowerBound = 0, upperBound = 1) {
 		const newGenes = this.genes.map((gene) => {
-			if (Chromosome.rand.next() < rate) {
-				return Chromosome.rand.nextIntInclusive(lowerBound, upperBound);
+			if (this.rand.next() < rate) {
+				return this.rand.nextIntInclusive(lowerBound, upperBound);
 			}
 			return gene;
 		});
-		return new Chromosome(newGenes);
+		return new Chromosome(newGenes, this.rand);
 	}
 
 	protected swapIntegerMutation(rate: number) {
 		const newGenes = [...this.genes];
 		for (let i = 0; i < newGenes.length; i++) {
-			if (Chromosome.rand.next() < rate) {
-				const j = Chromosome.rand.nextIntInclusive(0, newGenes.length - 1);
+			if (this.rand.next() < rate) {
+				const j = this.rand.nextIntInclusive(0, newGenes.length - 1);
 				[newGenes[i], newGenes[j]] = [newGenes[j], newGenes[i]];
 			}
 		}
-		return new Chromosome(newGenes);
+		return new Chromosome(newGenes, this.rand);
 	}
 
 	protected additionSubtractionIntegerMutation(rate: number, lowerBound = 0, upperBound = 1) {
 		const newGenes = this.genes.map((gene) => {
-			if (Chromosome.rand.next() < rate) {
-				let result = gene + Chromosome.rand.nextIntInclusive(0, 1) === 0 ? -1 : 1;
+			if (this.rand.next() < rate) {
+				let result = gene + this.rand.nextIntInclusive(0, 1) === 0 ? -1 : 1;
 
 				// If the result is out of bounds, then we roll it over to the other side.
 				if (result < lowerBound) {
@@ -128,6 +131,6 @@ export class Chromosome {
 			}
 			return gene;
 		});
-		return new Chromosome(newGenes);
+		return new Chromosome(newGenes, this.rand);
 	}
 }

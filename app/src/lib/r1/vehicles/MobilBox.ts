@@ -1,3 +1,4 @@
+import { generateTSP } from '$lib/kb/libs';
 import type { VehicleLoad } from '../VehicleLoad';
 import { AbstractDeliveryVehicle } from './AbstractDeliveryVehicle';
 
@@ -64,5 +65,32 @@ export class MobilBox extends AbstractDeliveryVehicle {
 
 		// If the items don't fit, return a negative number that represents how much the vehicle can't fit the items.
 		return -overloadScore;
+	}
+
+	public getProfitScore(items: VehicleLoad[], map: number[][]) {
+		let profit = 0;
+		let destinations: number[] = [];
+
+		for (const item of items) {
+			let price = item.weight * map[item.originCity][item.destinationCity];
+			if (item.getVolume() <= 300) {
+				price *= 0.5;
+			} else if (item.getVolume() <= 600) {
+				price *= 0.75;
+			} else {
+				price *= 1.0;
+			}
+			profit += price;
+
+			// If destination is equal to headquarter
+			if (item.destinationCity == 0) continue;
+
+			if (!destinations.includes(item.destinationCity))
+				destinations.push(item.destinationCity);
+		}
+		let result = generateTSP(map, destinations);
+
+		// result[0] contains route, result[1] contains distance
+		return profit - result[1] * (this.pricePerKm + this.fuelConsumptionPerKm * this.fuelPricePerLiter);
 	}
 }
