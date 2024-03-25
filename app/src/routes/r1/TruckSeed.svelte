@@ -22,10 +22,10 @@
 		Record<'min' | 'max' | 'step', number>
 	> = {
 		// sensible starts
-		capacityWidth: { min: 0, max: 100, step: 10 },
-		capacityHeight: { min: 0, max: 100, step: 10 },
-		capacityDepth: { min: 0, max: 100, step: 10 },
-		capacityWeight: { min: 0, max: 500, step: 10 },
+		capacityWidth: { min: 30, max: 100, step: 10 },
+		capacityHeight: { min: 30, max: 100, step: 10 },
+		capacityDepth: { min: 30, max: 100, step: 10 },
+		capacityWeight: { min: 100, max: 500, step: 10 },
 
 		packingFactor: { min: 0.5, max: 0.5, step: 0 },
 		pricePerKm: { min: 0.5, max: 2, step: 0.1 },

@@ -47,7 +47,6 @@
 	const cityMap = generateDijkstra(cityWeights);
 
 	let gaSeed: string = '1415926535897932384626433832795028841971';
-	let random = Random.fromString(gaSeed);
 	let targetEpochs: number = 10;
 	let targetIndividuals: number = 500;
 	let crossoverRate = 0.7;
@@ -62,27 +61,17 @@
 		{
 			epoch: 0,
 			bestFitness: 0,
-			bestChromosome: new Chromosome([], random)
+			bestChromosome: new Chromosome([])
 		}
 	];
 
 	async function runGa() {
-		// Mapping
-		const province_map = [
-			[0, 61, 35, 0, 91, 12],
-			[61, 0, 0, 0, 0, 90],
-			[35, 0, 0, 100, 41, 0],
-			[0, 0, 100, 0, 23, 54],
-			[91, 0, 41, 23, 0, 0],
-			[12, 90, 0, 54, 0, 0]
-		];
-		const map = generateDijkstra(province_map);
-
 		// Seed
-		random = Random.fromString(gaSeed);
-		let chromosomes = [];
+		let random = Random.fromString(gaSeed);
+		Chromosome.rand = random;
 
 		// Generate initial population
+		let chromosomes = [];
 		while (chromosomes.length < targetIndividuals) {
 			const data = [];
 			for (let i = 0; i < vehicleLoad.length; i++) {
@@ -90,14 +79,14 @@
 				data.push(random.nextIntInclusive(-1, vehicles.length - 1));
 			}
 
-			const chromosome = new Chromosome(data, random);
+			const chromosome = new Chromosome(data);
 
 			for (let i = 0; i < vehicles.length; i++) {
 				const load = [];
 				for (let j = 0; j < vehicleLoad.length; j++) {
 					if (data[j] == i) load.push(vehicleLoad[j]);
 				}
-				chromosome.calculatedFitness += vehicles[i].getFitScore(load);
+				chromosome.calculatedFitness += 1000000 * vehicles[i].getFitScore(load);
 			}
 			if (chromosome.calculatedFitness == 0) {
 				chromosomes.push(chromosome);
@@ -111,10 +100,11 @@
 				for (let k = 0; k < vehicleLoad.length; k++) {
 					if (chromosomes[i].genes[k] == j) load.push(vehicleLoad[k]);
 				}
-				chromosomes[i].calculatedFitness += vehicles[j].getProfitScore(load, map);
+				chromosomes[i].calculatedFitness += vehicles[j].getProfitScore(load, cityMap);
 			}
 		}
 		chromosomes.sort(Chromosome.compareByFitness);
+		console.log(chromosomes);
 
 		// Run the genetic algorithm
 		for (let gen = 0; gen < targetEpochs; gen++) {
@@ -149,8 +139,7 @@
 				);
 
 				// Mutation
-				offspring.mutate(mutationMethod, mutationRate, 0, vehicles.length);
-
+				offspring = offspring.mutate(mutationMethod, mutationRate, 0, vehicles.length);
 				new_chromosomes.push(offspring);
 			}
 			chromosomes = new_chromosomes;
@@ -162,7 +151,8 @@
 					for (let k = 0; k < vehicleLoad.length; k++) {
 						if (chromosomes[i].genes[k] == j) load.push(vehicleLoad[k]);
 					}
-					chromosomes[i].calculatedFitness += vehicles[j].getProfitScore(load, map);
+					chromosomes[i].calculatedFitness += 1000000 * vehicles[j].getFitScore(load);
+					chromosomes[i].calculatedFitness += vehicles[j].getProfitScore(load, cityMap);
 				}
 			}
 			chromosomes.sort(Chromosome.compareByFitness);
@@ -261,7 +251,10 @@
 
 			<label>
 				Crossover Type:
-				<select class="px-2" bind:value={crossoverMethod}>
+				<select class="px-2" value={String(crossoverMethod)} on:change={(e) => { 
+					// @ts-ignore
+					crossoverMethod = Number.parseInt(e.target.value);
+					}}>
 					{#each Object.entries(CrossoverTypeLabels) as [type, label]}
 						<option value={type}>{label}</option>
 					{/each}
@@ -270,7 +263,10 @@
 
 			<label>
 				Mutation Type:
-				<select class="px-2" bind:value={mutationMethod}>
+				<select class="px-2" value={String(mutationMethod)} on:change={(e) => { 
+					// @ts-ignore
+					mutationMethod = Number.parseInt(e.target.value);
+					}}>
 					{#each Object.entries(MutationTypeLabels) as [type, label]}
 						<option value={type}>{label}</option>
 					{/each}
