@@ -9,7 +9,7 @@
 		['height', 'height', 'item height'],
 		['depth', 'depth', 'item depth'],
 		['weight', 'weight', 'item weight'],
-		['originCity', 'orig. city', 'origin city'],
+		// ['originCity', 'orig. city', 'origin city'],
 		['destinationCity', 'dest. city', 'destination city']
 	];
 
@@ -22,8 +22,8 @@
 		height: { min: 5, max: 50, step: 1 },
 		depth: { min: 5, max: 50, step: 1 },
 		weight: { min: 0, max: 50, step: 1 },
-		originCity: { min: 0, max: 5, step: 1 },
-		destinationCity: { min: 0, max: 5, step: 1 }
+		// originCity: { min: 0, max: 5, step: 1 },
+		destinationCity: { min: 1, max: 5, step: 1 }
 	};
 
 	let seed = '12345678901234567890';
@@ -34,11 +34,11 @@
 
 		vehicleLoad = Array.from({ length: amount }, (_, i) => {
 			// origin city and destination city must not be the same, if it is then generate again
-			const originCity = rand.nextStepInclusive(
-				params.originCity.min,
-				params.originCity.max,
-				params.originCity.step
-			);
+			// const originCity = rand.nextStepInclusive(
+			// 	params.originCity.min,
+			// 	params.originCity.max,
+			// 	params.originCity.step
+			// );
 
 			let destinationCity = rand.nextStepInclusive(
 				params.destinationCity.min,
@@ -46,20 +46,19 @@
 				params.destinationCity.step
 			);
 
-			while (originCity === destinationCity) {
-				destinationCity = rand.nextStepInclusive(
-					params.destinationCity.min,
-					params.destinationCity.max,
-					params.destinationCity.step
-				);
-			}
+			// while (originCity === destinationCity) {
+			// 	destinationCity = rand.nextStepInclusive(
+			// 		params.destinationCity.min,
+			// 		params.destinationCity.max,
+			// 		params.destinationCity.step
+			// 	);
+			// }
 
 			return new VehicleLoad(
 				rand.nextStepInclusive(params.width.min, params.width.max, params.width.step),
 				rand.nextStepInclusive(params.height.min, params.height.max, params.height.step),
 				rand.nextStepInclusive(params.depth.min, params.depth.max, params.depth.step),
 				rand.nextStepInclusive(params.weight.min, params.weight.max, params.weight.step),
-				originCity,
 				destinationCity
 			);
 		});

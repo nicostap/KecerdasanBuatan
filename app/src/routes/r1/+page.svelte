@@ -16,7 +16,7 @@
 	} from '$lib/r1/Chromosome';
 	import { MobilBox } from '$lib/r1/vehicles/MobilBox';
 	import Truck from './Truck.svelte';
-	import { generateDijkstra, randomInteger } from '$lib/kb/libs';
+	import { generateDijkstra } from '$lib/kb/libs';
 	import Barang from './Barang.svelte';
 	import { VehicleLoad } from '$lib/r1/VehicleLoad';
 	import TruckSeed from './TruckSeed.svelte';
@@ -52,7 +52,7 @@
 	let crossoverRate = 0.7;
 	let crossoverUniformRate = 0.5;
 	let mutationRate = 0.02;
-	
+
 	// These should be strings for the labels to work
 	let crossoverMethod = CrossoverType.Uniform;
 	let mutationMethod = MutationType.AdditionSubtractionInteger;
@@ -100,11 +100,12 @@
 				for (let k = 0; k < vehicleLoad.length; k++) {
 					if (chromosomes[i].genes[k] == j) load.push(vehicleLoad[k]);
 				}
-				chromosomes[i].calculatedFitness += vehicles[j].getProfitScore(load, cityMap);
+				let calculation = vehicles[j].getProfitScore(load, cityMap);
+				chromosomes[i].route.push(calculation[0]);
+				chromosomes[i].calculatedFitness += calculation[1];
 			}
 		}
 		chromosomes.sort(Chromosome.compareByFitness);
-		console.log(chromosomes);
 
 		// Run the genetic algorithm
 		for (let gen = 0; gen < targetEpochs; gen++) {
@@ -116,33 +117,45 @@
 			while (new_chromosomes.length < chromosomes.length) {
 				// Ranking Selection
 				let first_pick, second_pick;
-				first_pick = randomInteger(0, (chromosomes.length * (chromosomes.length + 1)) / 2.0);
-				for (let i = 0; i < chromosomes.length; i++) {
-					if (((i + 1) * (i + 2)) / 2.0 >= first_pick) {
-						first_pick = i;
-						break;
-					}
-				}
-				second_pick = randomInteger(0, (chromosomes.length * (chromosomes.length + 1)) / 2.0);
-				for (let i = 0; i < chromosomes.length; i++) {
-					if (((i + 1) * (i + 2)) / 2.0 >= second_pick) {
-						second_pick = i;
-						break;
-					}
-				}
-
-				// Crossover
-				let offspring = chromosomes[first_pick].crossover(
-					chromosomes[second_pick],
-					crossoverMethod,
-					crossoverRate
+				first_pick = random.nextIntInclusive(
+					1,
+					(chromosomes.length * (chromosomes.length - 1)) / 2.0
 				);
+				for (let i = 1; i <= chromosomes.length; i++) {
+					if (first_pick <= 0) {
+						first_pick = i - 1;
+						break;
+					}
+					first_pick -= i;
+				}
+				second_pick = random.nextIntInclusive(
+					1,
+					(chromosomes.length * (chromosomes.length - 1)) / 2.0
+				);
+				for (let i = 1; i <= chromosomes.length; i++) {
+					if (second_pick <= 0) {
+						second_pick = i - 1;
+						break;
+					}
+					second_pick -= i;
+				}
 
-				// Mutation
-				offspring = offspring.mutate(mutationMethod, mutationRate, 0, vehicles.length);
-				new_chromosomes.push(offspring);
+				let offspring_count = random.nextIntInclusive(1, 2);
+				for (let i = 0; i < offspring_count; i++) {
+					// Crossover
+					let offspring = chromosomes[first_pick].crossover(
+						chromosomes[second_pick],
+						crossoverMethod,
+						crossoverRate
+					);
+
+					// Mutation
+					offspring = offspring.mutate(mutationMethod, mutationRate, 0, vehicles.length);
+					new_chromosomes.push(offspring);
+				}
 			}
 			chromosomes = new_chromosomes;
+			chromosomes = chromosomes.slice(chromosomes.length - targetIndividuals, chromosomes.length);
 
 			// Calculate initial fitness values
 			for (let i = 0; i < chromosomes.length; i++) {
@@ -152,12 +165,17 @@
 						if (chromosomes[i].genes[k] == j) load.push(vehicleLoad[k]);
 					}
 					chromosomes[i].calculatedFitness += 1000000 * vehicles[j].getFitScore(load);
-					chromosomes[i].calculatedFitness += vehicles[j].getProfitScore(load, cityMap);
+
+					let calculation = vehicles[j].getProfitScore(load, cityMap);
+					chromosomes[i].route.push(calculation[0]);
+					chromosomes[i].calculatedFitness += calculation[1];
 				}
 			}
 			chromosomes.sort(Chromosome.compareByFitness);
 		}
-		console.log(chromosomes);
+		let result = chromosomes[chromosomes.length - 1];
+
+		console.log(result);
 	}
 </script>
 
@@ -200,7 +218,7 @@
 
 			<button
 				class="bg-orange-200 min-h-36 py-4 px-4 w-48"
-				on:click={() => (vehicleLoad = [...vehicleLoad, new VehicleLoad(5, 5, 5, 2, 0, 0)])}
+				on:click={() => (vehicleLoad = [...vehicleLoad, new VehicleLoad(5, 5, 5, 2, 0)])}
 			>
 				+
 			</button>
@@ -251,10 +269,14 @@
 
 			<label>
 				Crossover Type:
-				<select class="px-2" value={String(crossoverMethod)} on:change={(e) => { 
-					// @ts-ignore
-					crossoverMethod = Number.parseInt(e.target.value);
-					}}>
+				<select
+					class="px-2"
+					value={String(crossoverMethod)}
+					on:change={(e) => {
+						// @ts-ignore
+						crossoverMethod = Number.parseInt(e.target.value);
+					}}
+				>
 					{#each Object.entries(CrossoverTypeLabels) as [type, label]}
 						<option value={type}>{label}</option>
 					{/each}
@@ -263,10 +285,14 @@
 
 			<label>
 				Mutation Type:
-				<select class="px-2" value={String(mutationMethod)} on:change={(e) => { 
-					// @ts-ignore
-					mutationMethod = Number.parseInt(e.target.value);
-					}}>
+				<select
+					class="px-2"
+					value={String(mutationMethod)}
+					on:change={(e) => {
+						// @ts-ignore
+						mutationMethod = Number.parseInt(e.target.value);
+					}}
+				>
 					{#each Object.entries(MutationTypeLabels) as [type, label]}
 						<option value={type}>{label}</option>
 					{/each}

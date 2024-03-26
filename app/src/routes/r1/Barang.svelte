@@ -49,14 +49,14 @@
 		</label>
 	{/each}
 
-	<label title="origin city" class="flex pb-0.5">
+	<!-- <label title="origin city" class="flex pb-0.5">
 		orig:
 		<select bind:value={item.originCity} class="w-20 ml-auto px-0.5">
 			{#each cityLabels as city, i}
 				<option value={i}>{city}</option>
 			{/each}
 		</select>
-	</label>
+	</label> -->
 
 	<label title="destination city" class="flex pb-0.5">
 		dest:
@@ -67,12 +67,13 @@
 		</select>
 	</label>
 
+	<!-- value={cityMap[item.destinationCity][item.originCity]} -->
 	<label title="direct destination weight" class="flex pb-0.5">
 		direct w:
 		<input
 			type="number"
 			disabled
-			value={cityMap[item.destinationCity][item.originCity]}
+			value={cityMap[0][item.destinationCity]}
 			class="w-20 ml-auto px-0.5"
 		/>
 	</label>
