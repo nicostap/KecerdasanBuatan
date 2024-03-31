@@ -26,7 +26,7 @@
 		depth: { min: 5, max: 50, step: 1 },
 		weight: { min: 0, max: 50, step: 1 },
 		// originCity: { min: 0, max: 5, step: 1 },
-		destinationCity: { min: 0, max: 5, step: 1 }
+		destinationCity: { min: 1, max: 5, step: 1 }
 	};
 
 	let params: Record<
@@ -43,7 +43,10 @@
 	if (browser) {
 		// Load state
 		params = loadState('BarangSeed', defaults);
-		vehicleLoad = loadState('BarangSeed.vehicleLoad', []);
+		vehicleLoad = loadState<VehicleLoad[]>('BarangSeed.vehicleLoad', []).map(
+			({ width, height, depth, weight, originCity, destinationCity }) =>
+				new VehicleLoad(width, height, depth, weight, originCity, destinationCity)
+		);
 		seed = loadState('BarangSeed.seed', defaultSeed);
 		amount = loadState('BarangSeed.amount', defaultAmount);
 	}

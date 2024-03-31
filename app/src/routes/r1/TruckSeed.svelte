@@ -45,7 +45,28 @@
 	if (browser) {
 		// Load state
 		params = loadState('TruckSeed', defaults);
-		vehicles = loadState('TruckSeed.vehicles', []);
+		vehicles = loadState<MobilBox[]>('TruckSeed.vehicles', []).map(
+			({
+				capacityWidth,
+				capacityHeight,
+				capacityDepth,
+				capacityWeight,
+				packingFactor,
+				pricePerKm,
+				fuelPricePerLiter,
+				fuelConsumptionPerKm
+			}) =>
+				new MobilBox(
+					capacityWidth,
+					capacityHeight,
+					capacityDepth,
+					capacityWeight,
+					packingFactor,
+					pricePerKm,
+					fuelPricePerLiter,
+					fuelConsumptionPerKm
+				)
+		);
 		seed = loadState('TruckSeed.seed', defaultSeed);
 		amount = loadState('TruckSeed.amount', defaultAmount);
 	}

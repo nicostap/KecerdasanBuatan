@@ -69,7 +69,7 @@ export class MobilBox extends AbstractDeliveryVehicle {
 
 	public getProfitScore(items: VehicleLoad[], map: number[][]) {
 		let profit = 0;
-		let destinations: number[] = [];
+		const destinations: number[] = [];
 
 		for (const item of items) {
 			let price = item.weight * map[0][item.destinationCity];
@@ -85,12 +85,14 @@ export class MobilBox extends AbstractDeliveryVehicle {
 			// If destination is equal to headquarter
 			if (item.destinationCity == 0) continue;
 
-			if (!destinations.includes(item.destinationCity))
-				destinations.push(item.destinationCity);
+			if (!destinations.includes(item.destinationCity)) destinations.push(item.destinationCity);
 		}
-		let result = generateTSP(map, destinations);
+		const result = generateTSP(map, destinations);
 
 		// result[0] contains route, result[1] contains distance
-		return [result[0], profit - result[1] * (this.pricePerKm + this.fuelConsumptionPerKm * this.fuelPricePerLiter)];
+		return [
+			result[0],
+			profit - result[1] * (this.pricePerKm + this.fuelConsumptionPerKm * this.fuelPricePerLiter)
+		];
 	}
 }

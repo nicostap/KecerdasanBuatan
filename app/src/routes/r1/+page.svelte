@@ -2,7 +2,7 @@
 	export interface EpochSummaryData {
 		epoch: number;
 		bestFitness: number;
-		bestChromosome: Chromosome;
+		topIndividuals: Chromosome[];
 	}
 </script>
 
@@ -16,7 +16,7 @@
 	} from '$lib/r1/Chromosome';
 	import { MobilBox } from '$lib/r1/vehicles/MobilBox';
 	import Truck from './Truck.svelte';
-	import { generateDijkstra } from '$lib/kb/libs';
+	import { generateDijkstra, wait } from '$lib/kb/libs';
 	import Barang from './Barang.svelte';
 	import { VehicleLoad } from '$lib/r1/VehicleLoad';
 	import TruckSeed from './TruckSeed.svelte';
@@ -24,6 +24,8 @@
 	import EpochSummary from './EpochSummary.svelte';
 	import { Random } from '$lib/r1/Random';
 	import { randomStep } from '$lib/r1/Rand';
+	import GaSettings from './GASettings.svelte';
+	import { cityLabels } from '$lib/r1/Data';
 
 	const defaultMobilBoxParams: ConstructorParameters<typeof MobilBox> = [
 		100, 100, 100, 100, 0.8, 1000, 10000, 0.1
@@ -32,8 +34,6 @@
 	let vehicles: MobilBox[] = [];
 
 	let vehicleLoad: VehicleLoad[] = [];
-
-	const cityLabels = ['A', 'B', 'C', 'D', 'E', 'F'];
 
 	const cityWeights = [
 		[0, 61, 35, 0, 91, 12],
@@ -57,13 +57,7 @@
 	let crossoverMethod = CrossoverType.Uniform;
 	let mutationMethod = MutationType.AdditionSubtractionInteger;
 
-	let epochSummaries: EpochSummaryData[] = [
-		{
-			epoch: 0,
-			bestFitness: 0,
-			bestChromosome: new Chromosome([])
-		}
-	];
+	let epochSummaries: EpochSummaryData[] = [];
 
 	async function runGa() {
 		// Seed
@@ -106,6 +100,15 @@
 			}
 		}
 		chromosomes.sort(Chromosome.compareByFitness);
+
+		// Add to epoch summaries
+		epochSummaries = [
+			{
+				epoch: 0,
+				bestFitness: chromosomes[chromosomes.length - 1].calculatedFitness,
+				topIndividuals: chromosomes.slice(chromosomes.length - 5, chromosomes.length).reverse()
+			}
+		];
 
 		// Run the genetic algorithm
 		for (let gen = 0; gen < targetEpochs; gen++) {
@@ -172,6 +175,18 @@
 				}
 			}
 			chromosomes.sort(Chromosome.compareByFitness);
+
+			// Add to epoch summaries
+			epochSummaries = [
+				...epochSummaries,
+				{
+					epoch: gen + 1,
+					bestFitness: chromosomes[chromosomes.length - 1].calculatedFitness,
+					topIndividuals: chromosomes.slice(chromosomes.length - 5, chromosomes.length).reverse()
+				}
+			];
+
+			await wait(0);
 		}
 		let result = chromosomes[chromosomes.length - 1];
 
@@ -202,9 +217,11 @@
 						sortedItems[t][i][2] +
 						'\n'
 				);
-				console.log('Route for truck ' + t + ' : ' + result.route[t]);
+			console.log('Route for truck ' + t + ' : ' + result.route[t]);
 		}
 	}
+
+	let selectedEpoch = -1;
 </script>
 
 <main class="p-4 flex flex-col gap-4">
@@ -253,91 +270,23 @@
 		</div>
 	</section>
 
-	<section>
-		<h1 class="text-2xl font-bold mb-2">GA Settings</h1>
-		<div class="flex flex-col gap-2 bg-gray-200 p-4">
-			<div>
-				<label>
-					GA Seed:
-					<input type="text" class="px-2" bind:value={gaSeed} />
-				</label>
-			</div>
-
-			<label>
-				Target Epochs:
-				<input type="number" min={1} max={1000} class="px-2" bind:value={targetEpochs} />
-			</label>
-
-			<label>
-				Target Individuals:
-				<input type="number" min={1} max={10000} class="px-2" bind:value={targetIndividuals} />
-			</label>
-
-			<label>
-				Crossover Rate:
-				<input type="number" min={0} max={1} step={0.01} class="px-2" bind:value={crossoverRate} />
-			</label>
-
-			<label>
-				Uniform Crossover Rate:
-				<input
-					type="number"
-					min={0}
-					max={1}
-					step={0.01}
-					class="px-2"
-					bind:value={crossoverUniformRate}
-				/>
-			</label>
-
-			<label>
-				Mutation Rate:
-				<input type="number" min={0} max={1} step={0.01} class="px-2" bind:value={mutationRate} />
-			</label>
-
-			<label>
-				Crossover Type:
-				<select
-					class="px-2"
-					value={String(crossoverMethod)}
-					on:change={(e) => {
-						// @ts-ignore
-						crossoverMethod = Number.parseInt(e.target.value);
-					}}
-				>
-					{#each Object.entries(CrossoverTypeLabels) as [type, label]}
-						<option value={type}>{label}</option>
-					{/each}
-				</select>
-			</label>
-
-			<label>
-				Mutation Type:
-				<select
-					class="px-2"
-					value={String(mutationMethod)}
-					on:change={(e) => {
-						// @ts-ignore
-						mutationMethod = Number.parseInt(e.target.value);
-					}}
-				>
-					{#each Object.entries(MutationTypeLabels) as [type, label]}
-						<option value={type}>{label}</option>
-					{/each}
-				</select>
-			</label>
-
-			<div class="flex">
-				<button class="bg-blue-200 px-2" on:click={runGa}>Clear & Run</button>
-			</div>
-		</div>
-	</section>
+	<GaSettings run={runGa} />
 
 	<section>
 		<h1 class="text-2xl font-bold mb-2">Epoch List</h1>
 		<div class="flex flex-col gap-2">
 			{#each epochSummaries as epochSummary}
-				<EpochSummary summary={epochSummary} />
+				<EpochSummary
+					summary={epochSummary}
+					selected={epochSummary.epoch === selectedEpoch}
+					on:click={() => {
+						if (selectedEpoch === epochSummary.epoch) {
+							selectedEpoch = -1;
+						} else {
+							selectedEpoch = epochSummary.epoch;
+						}
+					}}
+				/>
 			{/each}
 		</div>
 	</section>
