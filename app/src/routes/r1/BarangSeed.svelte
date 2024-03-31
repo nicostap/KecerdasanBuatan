@@ -1,6 +1,9 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
+	import { loadState, saveState } from '$lib/StateManager';
 	import { Random } from '$lib/r1/Random';
 	import { VehicleLoad } from '$lib/r1/VehicleLoad';
+	import { onDestroy, onMount } from 'svelte';
 
 	export let vehicleLoad: VehicleLoad[];
 
@@ -13,7 +16,7 @@
 		['destinationCity', 'dest. city', 'destination city']
 	];
 
-	const params: Record<
+	const defaults: Record<
 		(typeof editableNumbers)[number][0],
 		Record<'min' | 'max' | 'step', number>
 	> = {
@@ -26,10 +29,38 @@
 		destinationCity: { min: 0, max: 5, step: 1 }
 	};
 
-	let seed = '12345678901234567890';
-	let amount = 15;
+	let params: Record<
+		(typeof editableNumbers)[number][0],
+		Record<'min' | 'max' | 'step', number>
+	> = { ...defaults };
 
-	function generateVehicleLoads() {
+	const defaultSeed = '12345678901234567890';
+	const defaultAmount = 15;
+
+	let seed = defaultSeed;
+	let amount = defaultAmount;
+
+	if (browser) {
+		// Load state
+		params = loadState('BarangSeed', defaults);
+		vehicleLoad = loadState('BarangSeed.vehicleLoad', []);
+		seed = loadState('BarangSeed.seed', defaultSeed);
+		amount = loadState('BarangSeed.amount', defaultAmount);
+	}
+
+	$: saveState('BarangSeed', params);
+	$: saveState('BarangSeed.vehicleLoad', vehicleLoad);
+	$: saveState('BarangSeed.seed', seed);
+	$: saveState('BarangSeed.amount', amount);
+
+	function reset() {
+		params = { ...defaults };
+		vehicleLoad = [];
+		seed = defaultSeed;
+		amount = defaultAmount;
+	}
+
+	function generate() {
 		const rand = Random.fromString(seed);
 
 		vehicleLoad = Array.from({ length: amount }, (_, i) => {
@@ -67,7 +98,7 @@
 </script>
 
 <div class="bg-orange-200 min-h-36 py-4 px-4 w-96 flex flex-col">
-	<div class="font-bold text-xl mb-4">Seed</div>
+	<div class="font-bold text-xl mb-4">Generator</div>
 	<label class="flex pb-0.5">
 		seed:
 		<input type="text" class="ml-auto px-2" bind:value={seed} />
@@ -105,6 +136,7 @@
 		</div>
 	{/each}
 	<div class="mt-4">
-		<button class="px-2 bg-green-200" on:click={generateVehicleLoads}>Reset & Seed</button>
+		<button class="px-2 bg-green-200" on:click={generate}>Clean & Generate</button>
+		<button class="px-2 bg-yellow-200" on:click={reset}>Reset Defaults</button>
 	</div>
 </div>

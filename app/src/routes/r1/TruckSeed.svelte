@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
+	import { loadState, saveState } from '$lib/StateManager';
 	import { Random } from '$lib/r1/Random';
 	import type { AbstractDeliveryVehicle } from '$lib/r1/vehicles/AbstractDeliveryVehicle';
 	import { MobilBox } from '$lib/r1/vehicles/MobilBox';
@@ -17,7 +19,7 @@
 		['fuelConsumptionPerKm', 'fc/km', 'fuel consumption per km']
 	];
 
-	const params: Record<
+	const defaults: Record<
 		(typeof editableNumbers)[number][0],
 		Record<'min' | 'max' | 'step', number>
 	> = {
@@ -33,10 +35,34 @@
 		fuelConsumptionPerKm: { min: 0.5, max: 2, step: 0.1 }
 	};
 
-	let seed = '12345678901234567890';
-	let amount = 4;
+	let params = { ...defaults };
 
-	function generateVehicles() {
+	const defaultSeed = '12345678901234567890';
+	const defaultAmount = 4;
+	let seed = defaultSeed;
+	let amount = defaultAmount;
+
+	if (browser) {
+		// Load state
+		params = loadState('TruckSeed', defaults);
+		vehicles = loadState('TruckSeed.vehicles', []);
+		seed = loadState('TruckSeed.seed', defaultSeed);
+		amount = loadState('TruckSeed.amount', defaultAmount);
+	}
+
+	$: saveState('TruckSeed', params);
+	$: saveState('TruckSeed.vehicles', vehicles);
+	$: saveState('TruckSeed.seed', seed);
+	$: saveState('TruckSeed.amount', amount);
+
+	function reset() {
+		params = { ...defaults };
+		vehicles = [];
+		seed = defaultSeed;
+		amount = defaultAmount;
+	}
+
+	function generate() {
 		const rand = Random.fromString(seed);
 
 		vehicles = Array.from({ length: amount }, (_, i) => {
@@ -87,7 +113,7 @@
 </script>
 
 <div class="bg-gray-300 min-h-36 py-4 px-4 w-96 flex flex-col">
-	<div class="font-bold text-xl mb-4">Seed</div>
+	<div class="font-bold text-xl mb-4">Generator</div>
 	<label class="flex pb-0.5">
 		seed:
 		<input type="text" class="ml-auto px-2" bind:value={seed} />
@@ -125,6 +151,7 @@
 		</div>
 	{/each}
 	<div class="mt-4">
-		<button class="px-2 bg-green-200" on:click={generateVehicles}>Reset & Seed</button>
+		<button class="px-2 bg-green-200" on:click={generate}>Clean & Generate</button>
+		<button class="px-2 bg-yellow-200" on:click={reset}>Reset Defaults</button>
 	</div>
 </div>
