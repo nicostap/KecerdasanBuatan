@@ -87,7 +87,9 @@ export function generateTSP(dist, nodes) {
 			ans = permutation[i];
 		}
 	}
-	if (nodes.length == 0) return [[], 0];
+	if (nodes.length == 0) return [[0], 0];
+	ans.unshift(0);
+	ans.push(0);
 	return [ans, minDist];
 }
 

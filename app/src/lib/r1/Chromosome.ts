@@ -25,8 +25,13 @@ export const MutationTypeLabels = {
 } as const;
 
 export class Chromosome {
-	public calculatedFitness: number | null = null;
-	static rand: Random;
+	public calculatedFitness: number = 0;
+	public route: number[][] = [];
+	public static rand: Random;
+
+	public static compareByFitness(a: Chromosome, b: Chromosome) {
+		return a.calculatedFitness - b.calculatedFitness;
+	}
 
 	constructor(public genes: number[]) {}
 

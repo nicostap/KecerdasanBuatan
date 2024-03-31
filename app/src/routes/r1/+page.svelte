@@ -22,6 +22,8 @@
 	import TruckSeed from './TruckSeed.svelte';
 	import BarangSeed from './BarangSeed.svelte';
 	import EpochSummary from './EpochSummary.svelte';
+	import { Random } from '$lib/r1/Random';
+	import { randomStep } from '$lib/r1/Rand';
 
 	const defaultMobilBoxParams: ConstructorParameters<typeof MobilBox> = [
 		100, 100, 100, 100, 0.8, 1000, 10000, 0.1
@@ -50,8 +52,10 @@
 	let crossoverRate = 0.7;
 	let crossoverUniformRate = 0.5;
 	let mutationRate = 0.02;
-	let crossoverMethod = String(CrossoverType.Uniform);
-	let mutationMethod = String(MutationType.AdditionSubtractionInteger);
+
+	// These should be strings for the labels to work
+	let crossoverMethod = CrossoverType.Uniform;
+	let mutationMethod = MutationType.AdditionSubtractionInteger;
 
 	let epochSummaries: EpochSummaryData[] = [
 		{
@@ -61,7 +65,146 @@
 		}
 	];
 
-	async function runGa() {}
+	async function runGa() {
+		// Seed
+		let random = Random.fromString(gaSeed);
+		Chromosome.rand = random;
+
+		// Generate initial population
+		let chromosomes = [];
+		while (chromosomes.length < targetIndividuals) {
+			const data = [];
+			for (let i = 0; i < vehicleLoad.length; i++) {
+				// -1 indicates delayed sending
+				data.push(random.nextIntInclusive(-1, vehicles.length - 1));
+			}
+
+			const chromosome = new Chromosome(data);
+
+			for (let i = 0; i < vehicles.length; i++) {
+				const load = [];
+				for (let j = 0; j < vehicleLoad.length; j++) {
+					if (data[j] == i) load.push(vehicleLoad[j]);
+				}
+				chromosome.calculatedFitness += 1000000 * vehicles[i].getFitScore(load);
+			}
+			if (chromosome.calculatedFitness == 0) {
+				chromosomes.push(chromosome);
+			}
+		}
+
+		// Calculate initial fitness values
+		for (let i = 0; i < chromosomes.length; i++) {
+			for (let j = 0; j < vehicles.length; j++) {
+				const load = [];
+				for (let k = 0; k < vehicleLoad.length; k++) {
+					if (chromosomes[i].genes[k] == j) load.push(vehicleLoad[k]);
+				}
+				let calculation = vehicles[j].getProfitScore(load, cityMap);
+				chromosomes[i].route.push(calculation[0]);
+				chromosomes[i].calculatedFitness += calculation[1];
+			}
+		}
+		chromosomes.sort(Chromosome.compareByFitness);
+
+		// Run the genetic algorithm
+		for (let gen = 0; gen < targetEpochs; gen++) {
+			const new_chromosomes = [];
+
+			// Elitism
+			new_chromosomes.push(chromosomes[chromosomes.length - 1].clone());
+
+			while (new_chromosomes.length < chromosomes.length) {
+				// Ranking Selection
+				let first_pick, second_pick;
+				first_pick = random.nextIntInclusive(
+					1,
+					(chromosomes.length * (chromosomes.length - 1)) / 2.0
+				);
+				for (let i = 1; i <= chromosomes.length; i++) {
+					if (first_pick <= 0) {
+						first_pick = i - 1;
+						break;
+					}
+					first_pick -= i;
+				}
+				second_pick = random.nextIntInclusive(
+					1,
+					(chromosomes.length * (chromosomes.length - 1)) / 2.0
+				);
+				for (let i = 1; i <= chromosomes.length; i++) {
+					if (second_pick <= 0) {
+						second_pick = i - 1;
+						break;
+					}
+					second_pick -= i;
+				}
+
+				let offspring_count = random.nextIntInclusive(1, 2);
+				for (let i = 0; i < offspring_count; i++) {
+					// Crossover
+					let offspring = chromosomes[first_pick].crossover(
+						chromosomes[second_pick],
+						crossoverMethod,
+						crossoverRate
+					);
+
+					// Mutation
+					offspring = offspring.mutate(mutationMethod, mutationRate, -1, vehicles.length);
+					new_chromosomes.push(offspring);
+				}
+			}
+			chromosomes = new_chromosomes;
+			chromosomes = chromosomes.slice(chromosomes.length - targetIndividuals, chromosomes.length);
+
+			// Calculate initial fitness values
+			for (let i = 0; i < chromosomes.length; i++) {
+				for (let j = 0; j < vehicles.length; j++) {
+					const load = [];
+					for (let k = 0; k < vehicleLoad.length; k++) {
+						if (chromosomes[i].genes[k] == j) load.push(vehicleLoad[k]);
+					}
+					chromosomes[i].calculatedFitness += 1000000 * vehicles[j].getFitScore(load);
+
+					let calculation = vehicles[j].getProfitScore(load, cityMap);
+					chromosomes[i].route.push(calculation[0]);
+					chromosomes[i].calculatedFitness += calculation[1];
+				}
+			}
+			chromosomes.sort(Chromosome.compareByFitness);
+		}
+		let result = chromosomes[chromosomes.length - 1];
+
+		console.log(result);
+
+		let sortedItems: number[][][] = [];
+		for (let t = 0; t < vehicles.length; t++) {
+			sortedItems[t] = [];
+		}
+		for (let i = 0; i < result.genes.length; i++) {
+			if (result.genes[i] == -1) continue;
+			sortedItems[result.genes[i]].push([
+				i,
+				vehicleLoad[i].getVolume(),
+				vehicleLoad[i].destinationCity
+			]);
+		}
+
+		for (let t = 0; t < vehicles.length; t++) {
+			console.log('Truck ' + t + ': ');
+			for (let i = 0; i < sortedItems[t].length; i++)
+				console.log(
+					'id : ' +
+						sortedItems[t][i][0] +
+						', volume : ' +
+						sortedItems[t][i][1] +
+						', destination : ' +
+						sortedItems[t][i][2] +
+						'\n'
+				);
+				console.log('Route for truck ' + t + ' : ' + result.route[t]);
+		}
+	}
 </script>
 
 <main class="p-4 flex flex-col gap-4">
@@ -154,7 +297,14 @@
 
 			<label>
 				Crossover Type:
-				<select class="px-2" bind:value={crossoverMethod}>
+				<select
+					class="px-2"
+					value={String(crossoverMethod)}
+					on:change={(e) => {
+						// @ts-ignore
+						crossoverMethod = Number.parseInt(e.target.value);
+					}}
+				>
 					{#each Object.entries(CrossoverTypeLabels) as [type, label]}
 						<option value={type}>{label}</option>
 					{/each}
@@ -163,7 +313,14 @@
 
 			<label>
 				Mutation Type:
-				<select class="px-2" bind:value={mutationMethod}>
+				<select
+					class="px-2"
+					value={String(mutationMethod)}
+					on:change={(e) => {
+						// @ts-ignore
+						mutationMethod = Number.parseInt(e.target.value);
+					}}
+				>
 					{#each Object.entries(MutationTypeLabels) as [type, label]}
 						<option value={type}>{label}</option>
 					{/each}
