@@ -48,7 +48,7 @@
 			/>
 		</label>
 	{/each}
-
+	<!-- 
 	<label title="origin city" class="flex pb-0.5">
 		orig:
 		<select bind:value={item.originCity} class="w-20 ml-auto px-0.5">
@@ -56,7 +56,7 @@
 				<option value={i}>{city}</option>
 			{/each}
 		</select>
-	</label>
+	</label> -->
 
 	<label title="destination city" class="flex pb-0.5">
 		dest:
@@ -77,7 +77,7 @@
 		/>
 	</label>
 
-	<div class="mt-4">
+	<div class="pt-4 mt-auto">
 		<button class="px-2 bg-red-200" on:click={() => dispatch('delete')}>Delete</button>
 		<button class="px-2 bg-blue-200" on:click={() => dispatch('duplicate', item)}>Duplicate</button>
 	</div>
