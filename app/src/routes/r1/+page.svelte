@@ -97,7 +97,7 @@
 	async function runGa() {
 		// Set for fixed epoch mode or non-fixed epoch mode
 		let isEpochFixed = false;
-		let maxConvergeCounter = 10;
+		let maxConvergeCounter = 20;
 
 		// Seed
 		let random = Random.fromString(gaSeed);
@@ -130,6 +130,13 @@
 			}
 			chromosome.calculatedDefective = isDefective;
 
+			// Penalty if item that must be delivered is delayed
+			for (let i = 0; i < vehicleLoad.length; i++) {
+				if (vehicleLoad[i].mustDeliver && data[i] == -1) {
+					chromosome.calculatedFitness += -1000000;
+				}
+			}
+
 			chromosomes.push(chromosome);
 			if (chromosomes.length % 10 == 0) await wait(0);
 		}
@@ -152,8 +159,8 @@
 		for (let gen = 0; gen < targetEpochs; gen++) {
 			// For checking convergence
 			let old_fitness = chromosomes[chromosomes.length - 1].calculatedFitness;
-			if(convergeCounter == 0 && !isEpochFixed) {
-				console.log("Stop!");
+			if (convergeCounter == 0 && !isEpochFixed) {
+				console.log('Stop!');
 				chromosomeProgress = targetEpochs;
 				break;
 			}
@@ -229,7 +236,7 @@
 
 			// Converge counter
 			let new_fitness = chromosomes[chromosomes.length - 1].calculatedFitness;
-			if(old_fitness == new_fitness) {
+			if (old_fitness == new_fitness) {
 				convergeCounter--;
 			} else {
 				convergeCounter = maxConvergeCounter;

@@ -1,4 +1,6 @@
 export class VehicleLoad {
+	public mustDeliver = false;
+
 	constructor(
 		public width: number,
 		public height: number,
