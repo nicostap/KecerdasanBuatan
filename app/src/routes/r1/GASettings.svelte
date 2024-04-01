@@ -3,6 +3,42 @@
 		Once,
 		TryAll
 	}
+
+	export interface Range {
+		min: number;
+		max: number;
+		step: number;
+	}
+
+	export interface SettingsOnce {
+		targetEpochs: number;
+		targetIndividuals: number;
+		crossoverRate: number;
+		crossoverUniformRate: number;
+		mutationRate: number;
+		crossoverMethod: CrossoverType;
+		mutationMethod: MutationType;
+	}
+
+	export interface SettingsTryAll {
+		targetEpochs: number;
+		targetIndividuals: Range;
+		crossoverRate: Range;
+		crossoverUniformRate: Range;
+		mutationRate: Range;
+		crossoverMethod: CrossoverType[];
+		mutationMethod: MutationType[];
+	}
+
+	export interface GASettings {
+		mode: GAMode;
+		gaSeed: string;
+		once: SettingsOnce;
+		tryAll: SettingsTryAll;
+		fitScoreMultiplier: number;
+		delayedPenalty: number;
+		mustDeliverPenalty: number;
+	}
 </script>
 
 <script lang="ts">
@@ -13,65 +49,7 @@
 		MutationTypeLabels
 	} from '$lib/r1/Chromosome';
 
-	interface SettingsOnce {
-		targetEpochs: number;
-		targetIndividuals: number;
-		crossoverRate: number;
-		crossoverUniformRate: number;
-		mutationRate: number;
-		crossoverMethod: CrossoverType;
-		mutationMethod: MutationType;
-	}
-
-	interface Range {
-		min: number;
-		max: number;
-		step: number;
-	}
-
-	interface SettingsTryAll {
-		targetEpochs: number;
-		targetIndividuals: Range;
-		crossoverRate: Range;
-		crossoverUniformRate: Range;
-		mutationRate: Range;
-		crossoverMethod: CrossoverType[];
-		mutationMethod: MutationType[];
-	}
-
-	interface Settings {
-		mode: GAMode;
-		gaSeed: string;
-		once: SettingsOnce;
-		tryAll: SettingsTryAll;
-		fitScoreMultiplier: number;
-		delayedPenalty: number;
-	}
-
-	export let settings: Settings = {
-		mode: GAMode.Once,
-		gaSeed: '1415926535897932384626433832795028841971',
-		fitScoreMultiplier: 1000000,
-		delayedPenalty: -1000000,
-		once: {
-			targetEpochs: 10,
-			targetIndividuals: 500,
-			crossoverRate: 0.7,
-			crossoverUniformRate: 0.5,
-			mutationRate: 0.02,
-			crossoverMethod: CrossoverType.Uniform,
-			mutationMethod: MutationType.AdditionSubtractionInteger
-		},
-		tryAll: {
-			targetEpochs: 30,
-			targetIndividuals: { min: 500, max: 500, step: 100 },
-			crossoverRate: { min: 0.4, max: 0.6, step: 0.1 },
-			crossoverUniformRate: { min: 0.5, max: 0.5, step: 0.1 },
-			mutationRate: { min: 0.01, max: 0.1, step: 0.02 },
-			crossoverMethod: [CrossoverType.Uniform],
-			mutationMethod: [MutationType.AdditionSubtractionInteger, MutationType.RandomInteger]
-		}
-	};
+	export let settings: GASettings;
 
 	const editableFields = [
 		// { name: 'targetEpochs', label: 'Target Epochs', min: 1, max: 1000, step: 1 },
@@ -88,6 +66,7 @@
 	}[];
 
 	export let run: () => void = () => {};
+	export let runAll: () => void = () => {};
 	export let progress: number = 0;
 	export let progressMax: number = 0;
 </script>
@@ -131,6 +110,11 @@
 		<label>
 			Delayed Penalty:
 			<input type="number" class="px-2" bind:value={settings.delayedPenalty} />
+		</label>
+
+		<label>
+			Must Deliver Undelivered Penalty:
+			<input type="number" class="px-2" bind:value={settings.mustDeliverPenalty} />
 		</label>
 
 		{#if settings.mode === GAMode.Once}
@@ -272,7 +256,11 @@
 		{/if}
 
 		<div class="flex">
-			<button class="bg-blue-200 px-2" on:click={run}>Clear & Run</button>
+			{#if settings.mode === GAMode.Once}
+				<button class="bg-blue-200 px-2" on:click={run}>Clear & Run</button>
+			{:else}
+				<button class="bg-blue-200 px-2" on:click={runAll}>Clear & Run All</button>
+			{/if}
 			<div class="ml-auto">
 				{#if progress !== 0 && progress !== progressMax}
 					<div class="flex gap-2">

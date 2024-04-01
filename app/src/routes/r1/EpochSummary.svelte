@@ -33,7 +33,12 @@
 		role="button"
 		tabindex={-1}
 	>
-		<div>Epoch #{summary.epoch}</div>
+		<div>
+			<div class="font-bold">Epoch #{summary.epoch}</div>
+			{#if summary.description}
+				<div class="text-xs">{summary.description}</div>
+			{/if}
+		</div>
 		<div class="ml-auto flex gap-2">
 			<div class="text-xs">
 				<span class="text-gray-500 font-semibold mr-1">Defective Rate</span>

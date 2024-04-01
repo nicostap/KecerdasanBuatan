@@ -1,6 +1,7 @@
 <script lang="ts" context="module">
 	export interface EpochSummaryData {
 		epoch: number;
+		description?: string;
 		bestFitness: number;
 		topIndividuals: Chromosome[];
 		defectiveRate: number;
@@ -25,7 +26,7 @@
 	import BarangSeed from './BarangSeed.svelte';
 	import EpochSummary from './EpochSummary.svelte';
 	import { Random } from '$lib/r1/Random';
-	import GaSettings, { GAMode } from './GASettings.svelte';
+	import GaSettings, { GAMode, type GASettings } from './GASettings.svelte';
 	import { cityLabels } from '$lib/r1/Data';
 	import SummaryCharts from './SummaryCharts.svelte';
 
@@ -49,11 +50,12 @@
 	const cityMap = generateDijkstra(cityWeights);
 
 	let selectedEpoch = -1;
-	let gaSettings = {
+	let gaSettings: GASettings = {
 		mode: GAMode.Once,
 		gaSeed: '1415926535897932384626433832795028841971',
 		fitScoreMultiplier: 1000000,
-		delayedPenalty: -1000000,
+		delayedPenalty: -1000,
+		mustDeliverPenalty: -1000000,
 		once: {
 			targetEpochs: 30,
 			targetIndividuals: 500,
@@ -73,6 +75,32 @@
 			mutationMethod: [MutationType.AdditionSubtractionInteger, MutationType.RandomInteger]
 		}
 	};
+
+	$: tryAllTargetEpochsTotal =
+		Math.max(
+			Math.ceil(
+				(gaSettings.tryAll.targetIndividuals.max - gaSettings.tryAll.targetIndividuals.min) /
+					gaSettings.tryAll.targetIndividuals.step
+			) + 1,
+			1
+		) *
+		Math.max(
+			Math.ceil(
+				(gaSettings.tryAll.crossoverRate.max - gaSettings.tryAll.crossoverRate.min) /
+					gaSettings.tryAll.crossoverRate.step
+			) + 1,
+			1
+		) *
+		Math.max(
+			Math.ceil(
+				(gaSettings.tryAll.mutationRate.max - gaSettings.tryAll.mutationRate.min) /
+					gaSettings.tryAll.mutationRate.step
+			) + 1,
+			1
+		) *
+		gaSettings.tryAll.crossoverMethod.length *
+		gaSettings.tryAll.mutationMethod.length *
+		gaSettings.tryAll.targetEpochs;
 
 	// let gaSeed: string = '1415926535897932384626433832795028841971';
 	// let targetEpochs: number = 10;
@@ -117,6 +145,53 @@
 		];
 	}
 
+	async function runGaTryAll() {
+		const results: EpochSummaryData[] = [];
+
+		for (let crossoverMethod of gaSettings.tryAll.crossoverMethod) {
+			for (let mutationMethod of gaSettings.tryAll.mutationMethod) {
+				for (
+					let targetIndividuals = gaSettings.tryAll.targetIndividuals.min;
+					targetIndividuals <= gaSettings.tryAll.targetIndividuals.max;
+					targetIndividuals += gaSettings.tryAll.targetIndividuals.step
+				) {
+					for (
+						let crossoverRate = gaSettings.tryAll.crossoverRate.min;
+						crossoverRate <= gaSettings.tryAll.crossoverRate.max;
+						crossoverRate += gaSettings.tryAll.crossoverRate.step
+					) {
+						for (
+							let mutationRate = gaSettings.tryAll.mutationRate.min;
+							mutationRate <= gaSettings.tryAll.mutationRate.max;
+							mutationRate += gaSettings.tryAll.mutationRate.step
+						) {
+							await runGa(
+								gaSettings.gaSeed,
+								gaSettings.tryAll.targetEpochs,
+								targetIndividuals,
+								crossoverRate,
+								mutationRate,
+								crossoverMethod,
+								mutationMethod,
+								true
+							);
+
+							// Pick the last of the epoch summaries, change the epoch name to the settings
+							const lastSummary = epochSummaries[0];
+							lastSummary.description = `c: ${CrossoverTypeLabels[crossoverMethod]}, m: ${MutationTypeLabels[mutationMethod]}, ti: ${targetIndividuals}, c%: ${crossoverRate}, m%: ${mutationRate}`;
+
+							results.push(lastSummary);
+
+							await wait(0);
+						}
+					}
+				}
+			}
+		}
+
+		epochSummaries = results;
+	}
+
 	async function runGa(
 		gaSeed: string,
 		targetEpochs: number,
@@ -124,7 +199,8 @@
 		crossoverRate: number,
 		mutationRate: number,
 		crossoverMethod: CrossoverType,
-		mutationMethod: MutationType
+		mutationMethod: MutationType,
+		bulk = false
 	) {
 		// Set for fixed epoch mode or non-fixed epoch mode
 		let isEpochFixed = false;
@@ -163,8 +239,12 @@
 
 			// Penalty if item that must be delivered is delayed
 			for (let i = 0; i < vehicleLoad.length; i++) {
-				if (vehicleLoad[i].mustDeliver && data[i] == -1) {
+				if (data[i] == -1) {
 					chromosome.calculatedFitness += gaSettings.delayedPenalty;
+				}
+
+				if (vehicleLoad[i].mustDeliver && data[i] == -1) {
+					chromosome.calculatedFitness += gaSettings.mustDeliverPenalty;
 				}
 			}
 
@@ -173,7 +253,7 @@
 		}
 
 		chromosomes.sort(Chromosome.compareByFitness);
-		chromosomeProgress = 0;
+		if (!bulk) chromosomeProgress = 0;
 
 		// Add to epoch summaries
 		epochSummaries = [];
@@ -258,8 +338,12 @@
 
 				// Penalty if item that must be delivered is delayed
 				for (let j = 0; j < vehicleLoad.length; j++) {
-					if (vehicleLoad[j].mustDeliver && chromosomes[i].genes[j] == -1) {
+					if (chromosomes[i].genes[j] == -1) {
 						chromosomes[i].calculatedFitness += gaSettings.delayedPenalty;
+					}
+
+					if (vehicleLoad[j].mustDeliver && chromosomes[i].genes[j] == -1) {
+						chromosomes[i].calculatedFitness += gaSettings.mustDeliverPenalty;
 					}
 				}
 			}
@@ -278,8 +362,8 @@
 			// Add to epoch summaries
 			addSummary(chromosomes, gen + 1);
 
-			chromosomeProgress = gen + 1;
-			await wait(0);
+			chromosomeProgress++;
+			if (chromosomeProgress % 5 == 0 && !bulk) await wait(0);
 		}
 	}
 </script>
@@ -342,14 +426,21 @@
 				gaSettings.once.mutationMethod
 			);
 		}}
+		runAll={() => {
+			runGaTryAll();
+		}}
 		bind:settings={gaSettings}
-		progressMax={gaSettings.once.targetEpochs}
+		progressMax={gaSettings.mode === GAMode.Once
+			? gaSettings.once.targetEpochs
+			: tryAllTargetEpochsTotal}
 		progress={chromosomeProgress}
 	/>
 
-	<section>
-		<SummaryCharts summaries={epochSummaries} targetEpochs={gaSettings.once.targetEpochs} />
-	</section>
+	{#if gaSettings.mode === GAMode.Once}
+		<section>
+			<SummaryCharts summaries={epochSummaries} targetEpochs={gaSettings.once.targetEpochs} />
+		</section>
+	{/if}
 	<section>
 		<h1 class="text-2xl font-bold mb-2">Epoch List</h1>
 		<div class="flex flex-col gap-2">
