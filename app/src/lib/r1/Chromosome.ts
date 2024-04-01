@@ -26,6 +26,8 @@ export const MutationTypeLabels = {
 
 export class Chromosome {
 	public calculatedFitness: number = 0;
+	public calculatedDefective = false;
+
 	public route: number[][] = [];
 	public static rand: Random;
 

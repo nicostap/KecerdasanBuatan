@@ -5,7 +5,10 @@
 	export let summary: EpochSummaryData;
 	export let selected = false;
 
-	const props: [keyof EpochSummaryData, string][] = [['bestFitness', 'Best Fitness']];
+	const props: [keyof EpochSummaryData, string][] = [
+		['defectiveRate', 'Defective Rate'],
+		['bestFitness', 'Best Fitness']
+	];
 </script>
 
 <section>
@@ -34,19 +37,20 @@
 			<h2 class="text-lg font-bold mb-2">Top Individuals</h2>
 			<div class="flex flex-col">
 				{#each summary.topIndividuals as individual, individualIdx}
-					<div class="flex flex-col mb-2">
+					<div class="flex flex-col mb-4">
 						<div class="flex">
-							<div class="mr-2">
+							<div class="mr-2 font-bold">
 								#{individualIdx + 1}
 							</div>
 							<div class="flex flex-wrap gap-2">
 								{#each individual.genes as gene}
 									<div
+										class:bg-gray-300={gene === -1}
 										class:bg-blue-200={gene === 0}
 										class:bg-green-200={gene === 1}
 										class:bg-yellow-200={gene === 2}
 										class:bg-red-200={gene === 3}
-										class="px-2 py-1"
+										class="px-2"
 									>
 										{gene}
 									</div>
@@ -57,22 +61,26 @@
 							</div>
 						</div>
 
-						<div class="ml-4">
+						<div class="ml-4 mt-2">
 							<h3 class="text-sm font-bold">Truck Routes</h3>
-							{#each individual.route as route, routeIdx}
-								<div class="flex">
-									<div class="mr-2">
-										#{routeIdx + 1}
+							<div class="flex flex-wrap">
+								{#each individual.route as route, routeIdx}
+									<div class="flex flex-col mr-4 bg-blue-200 px-2 py-2">
+										<div class="font-bold">Truck #{routeIdx}</div>
+										<div class="flex flex-wrap gap-2">
+											{#each route as cityIdx, idx}
+												<div class="px-2">
+													{cityLabels[cityIdx]}
+												</div>
+												{#if idx < route.length - 1}
+													&rarr;
+												{/if}
+											{/each}
+										</div>
+										<div></div>
 									</div>
-									<div class="flex flex-wrap gap-2">
-										{#each route as cityIdx}
-											<div class="px-2 py-1">
-												{cityLabels[cityIdx]}
-											</div>
-										{/each}
-									</div>
-								</div>
-							{/each}
+								{/each}
+							</div>
 						</div>
 					</div>
 				{/each}

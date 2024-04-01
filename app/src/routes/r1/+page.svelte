@@ -3,6 +3,7 @@
 		epoch: number;
 		bestFitness: number;
 		topIndividuals: Chromosome[];
+		defectiveRate: number;
 	}
 </script>
 
@@ -109,18 +110,22 @@
 
 			const chromosome = new Chromosome(data);
 
+			let isDefective = false;
 			for (let i = 0; i < vehicles.length; i++) {
 				const load = [];
 				for (let j = 0; j < vehicleLoad.length; j++) {
 					if (data[j] == i) load.push(vehicleLoad[j]);
 				}
-				chromosome.calculatedFitness += 1000000 * vehicles[i].getFitScore(load);
+				const fitScore = vehicles[i].getFitScore(load);
+				chromosome.calculatedFitness += 1000000 * fitScore;
+				isDefective ||= fitScore !== 0;
 			}
+			chromosome.calculatedDefective = isDefective;
 			// if (chromosome.calculatedFitness == 0) {
 			chromosomes.push(chromosome);
 			// }
 
-			// await wait(1);
+			if (chromosomes.length % 10 == 0) await wait(0);
 		}
 
 		// Calculate initial fitness values
@@ -143,7 +148,8 @@
 			{
 				epoch: 0,
 				bestFitness: chromosomes[chromosomes.length - 1].calculatedFitness,
-				topIndividuals: chromosomes.slice(chromosomes.length - 5, chromosomes.length).reverse()
+				topIndividuals: chromosomes.slice(chromosomes.length - 5, chromosomes.length).reverse(),
+				defectiveRate: chromosomes.filter((c) => c.calculatedDefective).length / chromosomes.length
 			}
 		];
 
@@ -195,23 +201,29 @@
 				}
 			}
 			chromosomes = new_chromosomes;
-			chromosomes = chromosomes.slice(chromosomes.length - targetIndividuals, chromosomes.length);
 
 			// Calculate initial fitness values
 			for (let i = 0; i < chromosomes.length; i++) {
+				let isDefective = false;
 				for (let j = 0; j < vehicles.length; j++) {
 					const load = [];
 					for (let k = 0; k < vehicleLoad.length; k++) {
 						if (chromosomes[i].genes[k] == j) load.push(vehicleLoad[k]);
 					}
+					const fitScore = vehicles[j].getFitScore(load);
 					chromosomes[i].calculatedFitness += 1000000 * vehicles[j].getFitScore(load);
+					isDefective ||= fitScore !== 0;
 
 					let calculation = vehicles[j].getProfitScore(load, cityMap);
 					chromosomes[i].route.push(calculation[0]);
 					chromosomes[i].calculatedFitness += calculation[1];
 				}
+
+				chromosomes[i].calculatedDefective = isDefective;
 			}
 			chromosomes.sort(Chromosome.compareByFitness);
+
+			chromosomes = chromosomes.slice(chromosomes.length - targetIndividuals, chromosomes.length);
 
 			// Add to epoch summaries
 			epochSummaries = [
@@ -219,7 +231,9 @@
 				{
 					epoch: gen + 1,
 					bestFitness: chromosomes[chromosomes.length - 1].calculatedFitness,
-					topIndividuals: chromosomes.slice(chromosomes.length - 5, chromosomes.length).reverse()
+					topIndividuals: chromosomes.slice(chromosomes.length - 5, chromosomes.length).reverse(),
+					defectiveRate:
+						chromosomes.filter((c) => c.calculatedDefective).length / chromosomes.length
 				}
 			];
 
