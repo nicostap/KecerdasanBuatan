@@ -94,6 +94,14 @@
 	let epochSummaries: EpochSummaryData[] = [];
 	let chromosomeProgress = 0;
 
+	function addSummary(chromosomes: Chromosome[], epoch: number) {
+		const defectiveRate =
+			chromosomes.filter((c) => c.calculatedDefective).length / chromosomes.length;
+		const bestFitness = chromosomes[chromosomes.length - 1].calculatedFitness;
+		const topIndividuals = chromosomes.slice(chromosomes.length - 5, chromosomes.length).reverse();
+		epochSummaries = [{ epoch, bestFitness, topIndividuals, defectiveRate }, ...epochSummaries];
+	}
+
 	async function runGa() {
 		// Set for fixed epoch mode or non-fixed epoch mode
 		let isEpochFixed = false;
@@ -145,14 +153,8 @@
 		chromosomeProgress = 0;
 
 		// Add to epoch summaries
-		epochSummaries = [
-			{
-				epoch: 0,
-				bestFitness: chromosomes[chromosomes.length - 1].calculatedFitness,
-				topIndividuals: chromosomes.slice(chromosomes.length - 5, chromosomes.length).reverse(),
-				defectiveRate: chromosomes.filter((c) => c.calculatedDefective).length / chromosomes.length
-			}
-		];
+		epochSummaries = [];
+		addSummary(chromosomes, 0);
 
 		// Run the genetic algorithm
 		let convergeCounter = maxConvergeCounter;
@@ -250,20 +252,12 @@
 			}
 
 			// Add to epoch summaries
-			epochSummaries = [
-				...epochSummaries,
-				{
-					epoch: gen + 1,
-					bestFitness: chromosomes[chromosomes.length - 1].calculatedFitness,
-					topIndividuals: chromosomes.slice(chromosomes.length - 5, chromosomes.length).reverse(),
-					defectiveRate:
-						chromosomes.filter((c) => c.calculatedDefective).length / chromosomes.length
-				}
-			];
+			addSummary(chromosomes, gen + 1);
 
 			chromosomeProgress = gen + 1;
 			await wait(0);
 		}
+
 		let result = chromosomes[chromosomes.length - 1];
 		console.log(result.calculatedFitness);
 		let sortedItems: number[][][] = [];
