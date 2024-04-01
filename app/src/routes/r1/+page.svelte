@@ -52,8 +52,10 @@
 	let gaSettings = {
 		mode: GAMode.Once,
 		gaSeed: '1415926535897932384626433832795028841971',
+		fitScoreMultiplier: 1000000,
+		delayedPenalty: -1000000,
 		once: {
-			targetEpochs: 10,
+			targetEpochs: 30,
 			targetIndividuals: 500,
 			crossoverRate: 0.7,
 			crossoverUniformRate: 0.5,
@@ -62,11 +64,11 @@
 			mutationMethod: MutationType.AdditionSubtractionInteger
 		},
 		tryAll: {
-			targetEpochs: { min: 10, max: 100, step: 10 },
-			targetIndividuals: { min: 100, max: 1000, step: 100 },
-			crossoverRate: { min: 0.5, max: 0.9, step: 0.1 },
-			crossoverUniformRate: { min: 0.1, max: 0.9, step: 0.1 },
-			mutationRate: { min: 0.01, max: 0.1, step: 0.01 },
+			targetEpochs: 30,
+			targetIndividuals: { min: 500, max: 500, step: 100 },
+			crossoverRate: { min: 0.4, max: 0.6, step: 0.1 },
+			crossoverUniformRate: { min: 0.5, max: 0.5, step: 0.1 },
+			mutationRate: { min: 0.01, max: 0.1, step: 0.02 },
 			crossoverMethod: [CrossoverType.Uniform],
 			mutationMethod: [MutationType.AdditionSubtractionInteger, MutationType.RandomInteger]
 		}
@@ -77,21 +79,21 @@
 	// let targetIndividuals: number = 500;
 	// let crossoverRate = 0.7;
 	// let mutationRate = 0.02;
-	$: gaSeed = gaSettings.gaSeed;
-	$: targetEpochs = gaSettings.mode === GAMode.Once ? gaSettings.once.targetEpochs : 0;
-	$: targetIndividuals = gaSettings.mode === GAMode.Once ? gaSettings.once.targetIndividuals : 0;
-	$: crossoverRate = gaSettings.mode === GAMode.Once ? gaSettings.once.crossoverRate : 0;
-	$: mutationRate = gaSettings.mode === GAMode.Once ? gaSettings.once.mutationRate : 0;
+	// $: gaSeed = gaSettings.gaSeed;
+	// $: targetEpochs = gaSettings.mode === GAMode.Once ? gaSettings.once.targetEpochs : 0;
+	// $: targetIndividuals = gaSettings.mode === GAMode.Once ? gaSettings.once.targetIndividuals : 0;
+	// $: crossoverRate = gaSettings.mode === GAMode.Once ? gaSettings.once.crossoverRate : 0;
+	// $: mutationRate = gaSettings.mode === GAMode.Once ? gaSettings.once.mutationRate : 0;
 
-	// These should be strings for the labels to work
-	// let crossoverMethod = CrossoverType.Uniform;
-	// let mutationMethod = MutationType.AdditionSubtractionInteger;
-	$: crossoverMethod =
-		gaSettings.mode === GAMode.Once ? gaSettings.once.crossoverMethod : CrossoverType.Uniform;
-	$: mutationMethod =
-		gaSettings.mode === GAMode.Once
-			? gaSettings.once.mutationMethod
-			: MutationType.AdditionSubtractionInteger;
+	// // These should be strings for the labels to work
+	// // let crossoverMethod = CrossoverType.Uniform;
+	// // let mutationMethod = MutationType.AdditionSubtractionInteger;
+	// $: crossoverMethod =
+	// 	gaSettings.mode === GAMode.Once ? gaSettings.once.crossoverMethod : CrossoverType.Uniform;
+	// $: mutationMethod =
+	// 	gaSettings.mode === GAMode.Once
+	// 		? gaSettings.once.mutationMethod
+	// 		: MutationType.AdditionSubtractionInteger;
 
 	let epochSummaries: EpochSummaryData[] = [];
 	let chromosomeProgress = 0;
@@ -115,7 +117,15 @@
 		];
 	}
 
-	async function runGa() {
+	async function runGa(
+		gaSeed: string,
+		targetEpochs: number,
+		targetIndividuals: number,
+		crossoverRate: number,
+		mutationRate: number,
+		crossoverMethod: CrossoverType,
+		mutationMethod: MutationType
+	) {
 		// Set for fixed epoch mode or non-fixed epoch mode
 		let isEpochFixed = false;
 		let maxConvergeCounter = 20;
@@ -142,7 +152,7 @@
 					if (data[j] == i) load.push(vehicleLoad[j]);
 				}
 				const fitScore = vehicles[i].getFitScore(load);
-				chromosome.calculatedFitness += 1000000 * fitScore;
+				chromosome.calculatedFitness += gaSettings.fitScoreMultiplier * fitScore;
 				isDefective ||= fitScore !== 0;
 
 				let calculation = vehicles[i].getProfitScore(load, cityMap);
@@ -154,7 +164,7 @@
 			// Penalty if item that must be delivered is delayed
 			for (let i = 0; i < vehicleLoad.length; i++) {
 				if (vehicleLoad[i].mustDeliver && data[i] == -1) {
-					chromosome.calculatedFitness += -1000000;
+					chromosome.calculatedFitness += gaSettings.delayedPenalty;
 				}
 			}
 
@@ -236,7 +246,8 @@
 						if (chromosomes[i].genes[k] == j) load.push(vehicleLoad[k]);
 					}
 					const fitScore = vehicles[j].getFitScore(load);
-					chromosomes[i].calculatedFitness += 1000000 * vehicles[j].getFitScore(load);
+					chromosomes[i].calculatedFitness +=
+						gaSettings.fitScoreMultiplier * vehicles[j].getFitScore(load);
 					isDefective ||= fitScore !== 0;
 
 					let calculation = vehicles[j].getProfitScore(load, cityMap);
@@ -248,7 +259,7 @@
 				// Penalty if item that must be delivered is delayed
 				for (let j = 0; j < vehicleLoad.length; j++) {
 					if (vehicleLoad[j].mustDeliver && chromosomes[i].genes[j] == -1) {
-						chromosomes[i].calculatedFitness += -1000000;
+						chromosomes[i].calculatedFitness += gaSettings.delayedPenalty;
 					}
 				}
 			}
@@ -320,14 +331,24 @@
 	</section>
 
 	<GaSettings
-		run={runGa}
+		run={() => {
+			runGa(
+				gaSettings.gaSeed,
+				gaSettings.once.targetEpochs,
+				gaSettings.once.targetIndividuals,
+				gaSettings.once.crossoverRate,
+				gaSettings.once.mutationRate,
+				gaSettings.once.crossoverMethod,
+				gaSettings.once.mutationMethod
+			);
+		}}
 		bind:settings={gaSettings}
 		progressMax={gaSettings.once.targetEpochs}
 		progress={chromosomeProgress}
 	/>
 
 	<section>
-		<SummaryCharts summaries={epochSummaries} {targetEpochs} />
+		<SummaryCharts summaries={epochSummaries} targetEpochs={gaSettings.once.targetEpochs} />
 	</section>
 	<section>
 		<h1 class="text-2xl font-bold mb-2">Epoch List</h1>

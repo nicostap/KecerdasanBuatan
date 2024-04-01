@@ -71,15 +71,15 @@
 								{/each}
 							</div>
 							<div class="ml-auto">
-								Fitness: {individual.calculatedFitness}
+								Fitness: {individual.calculatedFitness.toFixed(2)}
 							</div>
 						</div>
 
 						<div class="ml-4 mt-2">
 							<h3 class="text-sm font-bold">Truck Routes</h3>
-							<div class="flex flex-wrap">
+							<div class="flex flex-wrap gap-2">
 								{#each individual.route as route, routeIdx}
-									<div class="flex flex-col mr-4 bg-blue-200 px-2 py-1">
+									<div class="flex flex-col bg-blue-200 px-2 py-1">
 										<div class="font-bold">Truck #{routeIdx}</div>
 										<div class="flex flex-wrap">
 											{#each route as cityIdx, idx}

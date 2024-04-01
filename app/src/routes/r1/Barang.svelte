@@ -67,6 +67,11 @@
 		</select>
 	</label>
 
+	<label title="volume" class="flex pb-0.5">
+		volume:
+		<input type="number" disabled value={item.getVolume()} class="w-20 ml-auto px-0.5" />
+	</label>
+
 	<label title="direct destination weight" class="flex pb-0.5">
 		direct w:
 		<input

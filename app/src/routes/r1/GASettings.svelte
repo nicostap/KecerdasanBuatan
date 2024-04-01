@@ -30,7 +30,7 @@
 	}
 
 	interface SettingsTryAll {
-		targetEpochs: Range;
+		targetEpochs: number;
 		targetIndividuals: Range;
 		crossoverRate: Range;
 		crossoverUniformRate: Range;
@@ -44,11 +44,15 @@
 		gaSeed: string;
 		once: SettingsOnce;
 		tryAll: SettingsTryAll;
+		fitScoreMultiplier: number;
+		delayedPenalty: number;
 	}
 
 	export let settings: Settings = {
 		mode: GAMode.Once,
 		gaSeed: '1415926535897932384626433832795028841971',
+		fitScoreMultiplier: 1000000,
+		delayedPenalty: -1000000,
 		once: {
 			targetEpochs: 10,
 			targetIndividuals: 500,
@@ -59,29 +63,29 @@
 			mutationMethod: MutationType.AdditionSubtractionInteger
 		},
 		tryAll: {
-			targetEpochs: { min: 10, max: 100, step: 10 },
-			targetIndividuals: { min: 100, max: 1000, step: 100 },
-			crossoverRate: { min: 0.5, max: 0.9, step: 0.1 },
-			crossoverUniformRate: { min: 0.1, max: 0.9, step: 0.1 },
-			mutationRate: { min: 0.01, max: 0.1, step: 0.01 },
+			targetEpochs: 30,
+			targetIndividuals: { min: 500, max: 500, step: 100 },
+			crossoverRate: { min: 0.4, max: 0.6, step: 0.1 },
+			crossoverUniformRate: { min: 0.5, max: 0.5, step: 0.1 },
+			mutationRate: { min: 0.01, max: 0.1, step: 0.02 },
 			crossoverMethod: [CrossoverType.Uniform],
 			mutationMethod: [MutationType.AdditionSubtractionInteger, MutationType.RandomInteger]
 		}
 	};
 
-	const editableFields: {
+	const editableFields = [
+		// { name: 'targetEpochs', label: 'Target Epochs', min: 1, max: 1000, step: 1 },
+		{ name: 'targetIndividuals', label: 'Target Individuals', min: 1, max: 10000, step: 1 },
+		{ name: 'crossoverRate', label: 'Crossover Rate', min: 0, max: 1, step: 0.01 },
+		{ name: 'crossoverUniformRate', label: 'Uniform Crossover Rate', min: 0, max: 1, step: 0.01 },
+		{ name: 'mutationRate', label: 'Mutation Rate', min: 0, max: 1, step: 0.01 }
+	] satisfies {
 		name: keyof Omit<SettingsOnce | SettingsTryAll, 'crossoverMethod' | 'mutationMethod'>;
 		label: string;
 		min: number;
 		max: number;
 		step: number;
-	}[] = [
-		{ name: 'targetEpochs', label: 'Target Epochs', min: 1, max: 1000, step: 1 },
-		{ name: 'targetIndividuals', label: 'Target Individuals', min: 1, max: 10000, step: 1 },
-		{ name: 'crossoverRate', label: 'Crossover Rate', min: 0, max: 1, step: 0.01 },
-		{ name: 'crossoverUniformRate', label: 'Uniform Crossover Rate', min: 0, max: 1, step: 0.01 },
-		{ name: 'mutationRate', label: 'Mutation Rate', min: 0, max: 1, step: 0.01 }
-	];
+	}[];
 
 	export let run: () => void = () => {};
 	export let progress: number = 0;
@@ -119,7 +123,28 @@
 			</label>
 		</div>
 
+		<label>
+			Vehicle Fit Score Multiplier:
+			<input type="number" class="px-2" bind:value={settings.fitScoreMultiplier} />
+		</label>
+
+		<label>
+			Delayed Penalty:
+			<input type="number" class="px-2" bind:value={settings.delayedPenalty} />
+		</label>
+
 		{#if settings.mode === GAMode.Once}
+			<label>
+				Target Epochs:
+				<input
+					type="number"
+					min={1}
+					max={1000}
+					class="px-2"
+					bind:value={settings.once['targetEpochs']}
+				/>
+			</label>
+
 			{#each editableFields as { name, label, min, max, step }}
 				<label>
 					{label}:
@@ -159,6 +184,17 @@
 				</select>
 			</label>
 		{:else}
+			<label>
+				Target Epochs:
+				<input
+					type="number"
+					min={1}
+					max={1000}
+					class="px-2"
+					bind:value={settings.tryAll['targetEpochs']}
+				/>
+			</label>
+
 			{#each editableFields as { name, label, min, max, step }}
 				<div class="flex pb-0.5">
 					{label}:
@@ -201,8 +237,12 @@
 					value={String(settings.once.crossoverMethod)}
 					on:change={(e) => {
 						// @ts-ignore
-						settings.once.crossoverMethod = Number.parseInt(e.target.value);
+						settings.tryAll.crossoverMethod = Array.from(e.target.selectedOptions).map((o) =>
+							// @ts-ignore
+							Number.parseInt(o.value)
+						);
 					}}
+					multiple
 				>
 					{#each Object.entries(CrossoverTypeLabels) as [type, label]}
 						<option value={type}>{label}</option>
@@ -217,8 +257,12 @@
 					value={String(settings.once.mutationMethod)}
 					on:change={(e) => {
 						// @ts-ignore
-						settings.once.mutationMethod = Number.parseInt(e.target.value);
+						settings.tryAll.mutationMethod = Array.from(e.target.selectedOptions).map((o) =>
+							// @ts-ignore
+							Number.parseInt(o.value)
+						);
 					}}
+					multiple
 				>
 					{#each Object.entries(MutationTypeLabels) as [type, label]}
 						<option value={type}>{label}</option>

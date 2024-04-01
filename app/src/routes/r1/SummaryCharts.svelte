@@ -21,7 +21,7 @@
 		labels: Array.from({ length: targetEpochs + 1 }, (_, i) => i),
 		datasets: [
 			{
-				label: 'Best Fitness over Epochs',
+				label: '',
 				data: summaries.map((summary) => summary.bestFitness).toReversed(),
 				fill: false,
 				borderColor: 'rgb(75, 192, 192)',
@@ -34,7 +34,7 @@
 		labels: Array.from({ length: targetEpochs + 1 }, (_, i) => i),
 		datasets: [
 			{
-				label: 'Defective Rate over Epochs',
+				label: '',
 				data: summaries.map((summary) => summary.defectiveRate).toReversed(),
 				fill: false,
 				borderColor: 'rgb(192, 75, 192)',
