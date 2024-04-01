@@ -4,6 +4,7 @@
 		bestFitness: number;
 		topIndividuals: Chromosome[];
 		defectiveRate: number;
+		truckInfo: [number, VehicleLoad][][][];
 	}
 </script>
 
@@ -26,6 +27,7 @@
 	import { Random } from '$lib/r1/Random';
 	import GaSettings, { GAMode } from './GASettings.svelte';
 	import { cityLabels } from '$lib/r1/Data';
+	import SummaryCharts from './SummaryCharts.svelte';
 
 	const defaultMobilBoxParams: ConstructorParameters<typeof MobilBox> = [
 		100, 100, 100, 100, 0.8, 1000, 10000, 0.1
@@ -99,7 +101,18 @@
 			chromosomes.filter((c) => c.calculatedDefective).length / chromosomes.length;
 		const bestFitness = chromosomes[chromosomes.length - 1].calculatedFitness;
 		const topIndividuals = chromosomes.slice(chromosomes.length - 5, chromosomes.length).reverse();
-		epochSummaries = [{ epoch, bestFitness, topIndividuals, defectiveRate }, ...epochSummaries];
+		const truckInfo = topIndividuals.map((c) => {
+			const truck: [number, VehicleLoad][][] = Array.from({ length: vehicles.length }, () => []);
+			for (let i = 0; i < c.genes.length; i++) {
+				if (c.genes[i] == -1) continue;
+				truck[c.genes[i]].push([i, vehicleLoad[i]]);
+			}
+			return truck;
+		});
+		epochSummaries = [
+			{ epoch, bestFitness, topIndividuals, defectiveRate, truckInfo },
+			...epochSummaries
+		];
 	}
 
 	async function runGa() {
@@ -208,7 +221,7 @@
 					);
 
 					// Mutation
-					offspring = offspring.mutate(mutationMethod, mutationRate, -1, vehicles.length);
+					offspring = offspring.mutate(mutationMethod, mutationRate, -1, vehicles.length - 1);
 					new_chromosomes.push(offspring);
 				}
 			}
@@ -256,36 +269,6 @@
 
 			chromosomeProgress = gen + 1;
 			await wait(0);
-		}
-
-		let result = chromosomes[chromosomes.length - 1];
-		console.log(result.calculatedFitness);
-		let sortedItems: number[][][] = [];
-		for (let t = 0; t < vehicles.length; t++) {
-			sortedItems[t] = [];
-		}
-		for (let i = 0; i < result.genes.length; i++) {
-			if (result.genes[i] == -1) continue;
-			sortedItems[result.genes[i]].push([
-				i,
-				vehicleLoad[i].getVolume(),
-				vehicleLoad[i].destinationCity
-			]);
-		}
-
-		for (let t = 0; t < vehicles.length; t++) {
-			console.log('Truck ' + t + ': ');
-			for (let i = 0; i < sortedItems[t].length; i++)
-				console.log(
-					'id : ' +
-						sortedItems[t][i][0] +
-						', volume : ' +
-						sortedItems[t][i][1] +
-						', destination : ' +
-						sortedItems[t][i][2] +
-						'\n'
-				);
-			console.log('Route for truck ' + t + ' : ' + result.route[t]);
 		}
 	}
 </script>
@@ -344,10 +327,15 @@
 	/>
 
 	<section>
+		<SummaryCharts summaries={epochSummaries} {targetEpochs} />
+	</section>
+	<section>
 		<h1 class="text-2xl font-bold mb-2">Epoch List</h1>
 		<div class="flex flex-col gap-2">
 			{#each epochSummaries as epochSummary}
 				<EpochSummary
+					{cityMap}
+					{vehicles}
 					summary={epochSummary}
 					selected={epochSummary.epoch === selectedEpoch}
 					on:click={() => {

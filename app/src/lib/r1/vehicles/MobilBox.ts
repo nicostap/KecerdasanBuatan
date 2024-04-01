@@ -92,7 +92,9 @@ export class MobilBox extends AbstractDeliveryVehicle {
 		// result[0] contains route, result[1] contains distance
 		return [
 			result[0],
-			profit - result[1] * (this.pricePerKm + this.fuelConsumptionPerKm * this.fuelPricePerLiter)
+			profit - result[1] * (this.pricePerKm + this.fuelConsumptionPerKm * this.fuelPricePerLiter),
+			profit,
+			result[1] * (this.pricePerKm + this.fuelConsumptionPerKm * this.fuelPricePerLiter)
 		];
 	}
 }
