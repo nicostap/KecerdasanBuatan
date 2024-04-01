@@ -116,9 +116,9 @@
 				}
 				chromosome.calculatedFitness += 1000000 * vehicles[i].getFitScore(load);
 			}
-			if (chromosome.calculatedFitness == 0) {
-				chromosomes.push(chromosome);
-			}
+			// if (chromosome.calculatedFitness == 0) {
+			chromosomes.push(chromosome);
+			// }
 
 			// await wait(1);
 		}
