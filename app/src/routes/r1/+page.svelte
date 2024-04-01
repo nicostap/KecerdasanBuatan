@@ -229,6 +229,13 @@
 					chromosomes[i].calculatedFitness += calculation[1];
 				}
 				chromosomes[i].calculatedDefective = isDefective;
+
+				// Penalty if item that must be delivered is delayed
+				for (let j = 0; j < vehicleLoad.length; j++) {
+					if (vehicleLoad[j].mustDeliver && chromosomes[i].genes[j] == -1) {
+						chromosomes[i].calculatedFitness += -1000000;
+					}
+				}
 			}
 			chromosomes.sort(Chromosome.compareByFitness);
 
