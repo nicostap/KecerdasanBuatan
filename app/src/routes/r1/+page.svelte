@@ -23,8 +23,7 @@
 	import BarangSeed from './BarangSeed.svelte';
 	import EpochSummary from './EpochSummary.svelte';
 	import { Random } from '$lib/r1/Random';
-	import { randomStep } from '$lib/r1/Rand';
-	import GaSettings from './GASettings.svelte';
+	import GaSettings, { GAMode } from './GASettings.svelte';
 	import { cityLabels } from '$lib/r1/Data';
 
 	const defaultMobilBoxParams: ConstructorParameters<typeof MobilBox> = [
@@ -46,18 +45,53 @@
 
 	const cityMap = generateDijkstra(cityWeights);
 
-	let gaSeed: string = '1415926535897932384626433832795028841971';
-	let targetEpochs: number = 10;
-	let targetIndividuals: number = 500;
-	let crossoverRate = 0.7;
-	let crossoverUniformRate = 0.5;
-	let mutationRate = 0.02;
+	let selectedEpoch = -1;
+	let gaSettings = {
+		mode: GAMode.Once,
+		gaSeed: '1415926535897932384626433832795028841971',
+		once: {
+			targetEpochs: 10,
+			targetIndividuals: 500,
+			crossoverRate: 0.7,
+			crossoverUniformRate: 0.5,
+			mutationRate: 0.02,
+			crossoverMethod: CrossoverType.Uniform,
+			mutationMethod: MutationType.AdditionSubtractionInteger
+		},
+		tryAll: {
+			targetEpochs: { min: 10, max: 100, step: 10 },
+			targetIndividuals: { min: 100, max: 1000, step: 100 },
+			crossoverRate: { min: 0.5, max: 0.9, step: 0.1 },
+			crossoverUniformRate: { min: 0.1, max: 0.9, step: 0.1 },
+			mutationRate: { min: 0.01, max: 0.1, step: 0.01 },
+			crossoverMethod: [CrossoverType.Uniform],
+			mutationMethod: [MutationType.AdditionSubtractionInteger, MutationType.RandomInteger]
+		}
+	};
+
+	// let gaSeed: string = '1415926535897932384626433832795028841971';
+	// let targetEpochs: number = 10;
+	// let targetIndividuals: number = 500;
+	// let crossoverRate = 0.7;
+	// let mutationRate = 0.02;
+	$: gaSeed = gaSettings.gaSeed;
+	$: targetEpochs = gaSettings.mode === GAMode.Once ? gaSettings.once.targetEpochs : 0;
+	$: targetIndividuals = gaSettings.mode === GAMode.Once ? gaSettings.once.targetIndividuals : 0;
+	$: crossoverRate = gaSettings.mode === GAMode.Once ? gaSettings.once.crossoverRate : 0;
+	$: mutationRate = gaSettings.mode === GAMode.Once ? gaSettings.once.mutationRate : 0;
 
 	// These should be strings for the labels to work
-	let crossoverMethod = CrossoverType.Uniform;
-	let mutationMethod = MutationType.AdditionSubtractionInteger;
+	// let crossoverMethod = CrossoverType.Uniform;
+	// let mutationMethod = MutationType.AdditionSubtractionInteger;
+	$: crossoverMethod =
+		gaSettings.mode === GAMode.Once ? gaSettings.once.crossoverMethod : CrossoverType.Uniform;
+	$: mutationMethod =
+		gaSettings.mode === GAMode.Once
+			? gaSettings.once.mutationMethod
+			: MutationType.AdditionSubtractionInteger;
 
 	let epochSummaries: EpochSummaryData[] = [];
+	let chromosomeProgress = 0;
 
 	async function runGa() {
 		// Seed
@@ -85,6 +119,8 @@
 			if (chromosome.calculatedFitness == 0) {
 				chromosomes.push(chromosome);
 			}
+
+			// await wait(1);
 		}
 
 		// Calculate initial fitness values
@@ -100,6 +136,7 @@
 			}
 		}
 		chromosomes.sort(Chromosome.compareByFitness);
+		chromosomeProgress = 0;
 
 		// Add to epoch summaries
 		epochSummaries = [
@@ -186,6 +223,7 @@
 				}
 			];
 
+			chromosomeProgress = gen + 1;
 			await wait(0);
 		}
 		let result = chromosomes[chromosomes.length - 1];
@@ -220,8 +258,6 @@
 			console.log('Route for truck ' + t + ' : ' + result.route[t]);
 		}
 	}
-
-	let selectedEpoch = -1;
 </script>
 
 <main class="p-4 flex flex-col gap-4">
@@ -270,7 +306,12 @@
 		</div>
 	</section>
 
-	<GaSettings run={runGa} />
+	<GaSettings
+		run={runGa}
+		bind:settings={gaSettings}
+		progressMax={gaSettings.once.targetEpochs}
+		progress={chromosomeProgress}
+	/>
 
 	<section>
 		<h1 class="text-2xl font-bold mb-2">Epoch List</h1>
