@@ -95,6 +95,10 @@
 	let chromosomeProgress = 0;
 
 	async function runGa() {
+		// Set for fixed epoch mode or non-fixed epoch mode
+		let isEpochFixed = false;
+		let maxConvergeCounter = 10;
+
 		// Seed
 		let random = Random.fromString(gaSeed);
 		Chromosome.rand = random;
@@ -119,27 +123,17 @@
 				const fitScore = vehicles[i].getFitScore(load);
 				chromosome.calculatedFitness += 1000000 * fitScore;
 				isDefective ||= fitScore !== 0;
+
+				let calculation = vehicles[i].getProfitScore(load, cityMap);
+				chromosome.calculatedFitness += calculation[1];
+				chromosome.route.push(calculation[0]);
 			}
 			chromosome.calculatedDefective = isDefective;
-			// if (chromosome.calculatedFitness == 0) {
-			chromosomes.push(chromosome);
-			// }
 
+			chromosomes.push(chromosome);
 			if (chromosomes.length % 10 == 0) await wait(0);
 		}
 
-		// Calculate initial fitness values
-		for (let i = 0; i < chromosomes.length; i++) {
-			for (let j = 0; j < vehicles.length; j++) {
-				const load = [];
-				for (let k = 0; k < vehicleLoad.length; k++) {
-					if (chromosomes[i].genes[k] == j) load.push(vehicleLoad[k]);
-				}
-				let calculation = vehicles[j].getProfitScore(load, cityMap);
-				chromosomes[i].route.push(calculation[0]);
-				chromosomes[i].calculatedFitness += calculation[1];
-			}
-		}
 		chromosomes.sort(Chromosome.compareByFitness);
 		chromosomeProgress = 0;
 
@@ -154,7 +148,16 @@
 		];
 
 		// Run the genetic algorithm
+		let convergeCounter = maxConvergeCounter;
 		for (let gen = 0; gen < targetEpochs; gen++) {
+			// For checking convergence
+			let old_fitness = chromosomes[chromosomes.length - 1].calculatedFitness;
+			if(convergeCounter == 0 && !isEpochFixed) {
+				console.log("Stop!");
+				chromosomeProgress = targetEpochs;
+				break;
+			}
+
 			const new_chromosomes = [];
 
 			// Elitism
@@ -218,12 +221,19 @@
 					chromosomes[i].route.push(calculation[0]);
 					chromosomes[i].calculatedFitness += calculation[1];
 				}
-
 				chromosomes[i].calculatedDefective = isDefective;
 			}
 			chromosomes.sort(Chromosome.compareByFitness);
 
 			chromosomes = chromosomes.slice(chromosomes.length - targetIndividuals, chromosomes.length);
+
+			// Converge counter
+			let new_fitness = chromosomes[chromosomes.length - 1].calculatedFitness;
+			if(old_fitness == new_fitness) {
+				convergeCounter--;
+			} else {
+				convergeCounter = maxConvergeCounter;
+			}
 
 			// Add to epoch summaries
 			epochSummaries = [
@@ -241,9 +251,7 @@
 			await wait(0);
 		}
 		let result = chromosomes[chromosomes.length - 1];
-
-		console.log(result);
-
+		console.log(result.calculatedFitness);
 		let sortedItems: number[][][] = [];
 		for (let t = 0; t < vehicles.length; t++) {
 			sortedItems[t] = [];

@@ -59,7 +59,7 @@ export class MobilBox extends AbstractDeliveryVehicle {
 		const overloadScore = Math.max(volumeScore, weightScore);
 
 		// If the items fit, return 0.
-		if (overloadScore <= 1) {
+		if (overloadScore <= 1.0) {
 			return 0;
 		}
 
