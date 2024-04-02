@@ -147,6 +147,7 @@
 
 	async function runGaTryAll() {
 		const results: EpochSummaryData[] = [];
+		chromosomeProgress = 0;
 
 		for (let crossoverMethod of gaSettings.tryAll.crossoverMethod) {
 			for (let mutationMethod of gaSettings.tryAll.mutationMethod) {
