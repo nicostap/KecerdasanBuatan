@@ -53,16 +53,16 @@
 	let gaSettings: GASettings = {
 		mode: GAMode.Once,
 		gaSeed: '1415926535897932384626433832795028841971',
-		fitScoreMultiplier: 1000000,
+		fitScoreMultiplier: 10000000,
 		delayedPenalty: -1000,
-		mustDeliverPenalty: -1000000,
+		mustDeliverPenalty: -10000000,
 		once: {
 			targetEpochs: 30,
 			targetIndividuals: 500,
 			crossoverRate: 0.7,
 			crossoverUniformRate: 0.5,
 			mutationRate: 0.02,
-			crossoverMethod: CrossoverType.Uniform,
+			crossoverMethod: CrossoverType.OnePoint,
 			mutationMethod: MutationType.AdditionSubtractionInteger
 		},
 		tryAll: {
@@ -318,6 +318,7 @@
 
 		chromosomes.sort(Chromosome.compareByFitness);
 		if (!bulk) chromosomeProgress = 0;
+		await wait(0);
 
 		// Add to epoch summaries
 		epochSummaries = [];
@@ -427,7 +428,7 @@
 			addSummary(chromosomes, gen + 1);
 
 			chromosomeProgress++;
-			if (chromosomeProgress % 5 == 0 && !bulk) await wait(0);
+			await wait(0);
 		}
 	}
 </script>
