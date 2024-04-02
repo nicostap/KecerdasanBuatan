@@ -56,8 +56,8 @@ onmessage = async (e) => {
 
 	vehicleLoad = vehicleLoadMessage.map(
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		({ width, height, depth, weight, originCity, destinationCity }: any) =>
-			new VehicleLoad(width, height, depth, weight, originCity, destinationCity)
+		({ width, height, depth, weight, originCity, destinationCity, mustDeliver }: any) =>
+			new VehicleLoad(width, height, depth, weight, originCity, destinationCity, mustDeliver)
 	);
 
 	await runGa(

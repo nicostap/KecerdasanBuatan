@@ -1,13 +1,12 @@
 export class VehicleLoad {
-	public mustDeliver = false;
-
 	constructor(
 		public width: number,
 		public height: number,
 		public depth: number,
 		public weight: number,
 		public originCity: number,
-		public destinationCity: number
+		public destinationCity: number,
+		public mustDeliver = false
 	) {}
 
 	public copy() {
@@ -17,7 +16,8 @@ export class VehicleLoad {
 			this.depth,
 			this.weight,
 			this.originCity,
-			this.destinationCity
+			this.destinationCity,
+			this.mustDeliver
 		);
 	}
 

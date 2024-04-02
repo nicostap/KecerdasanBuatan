@@ -48,6 +48,10 @@
 			/>
 		</label>
 	{/each}
+	<label title="must deliver" class="flex pb-0.5">
+		must:
+		<input type="checkbox" bind:value={item['mustDeliver']} class="ml-auto px-0.5" />
+	</label>
 	<!-- 
 	<label title="origin city" class="flex pb-0.5">
 		orig:

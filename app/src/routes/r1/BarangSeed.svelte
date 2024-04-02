@@ -44,8 +44,8 @@
 		// Load state
 		params = loadState('BarangSeed', defaults);
 		vehicleLoad = loadState<VehicleLoad[]>('BarangSeed.vehicleLoad', []).map(
-			({ width, height, depth, weight, originCity, destinationCity }) =>
-				new VehicleLoad(width, height, depth, weight, originCity, destinationCity)
+			({ width, height, depth, weight, originCity, destinationCity, mustDeliver }) =>
+				new VehicleLoad(width, height, depth, weight, originCity, destinationCity, mustDeliver)
 		);
 		seed = loadState('BarangSeed.seed', defaultSeed);
 		amount = loadState('BarangSeed.amount', defaultAmount);

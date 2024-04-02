@@ -200,7 +200,8 @@
 														v.depth,
 														v.weight,
 														v.originCity,
-														v.destinationCity
+														v.destinationCity,
+														v.mustDeliver
 													)
 												])
 											)
