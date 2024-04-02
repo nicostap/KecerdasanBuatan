@@ -29,6 +29,7 @@
 	import GaSettings, { GAMode, type GASettings } from './GASettings.svelte';
 	import { cityLabels } from '$lib/r1/Data';
 	import SummaryCharts from './SummaryCharts.svelte';
+	import CityMap from './CityMap.svelte';
 
 	const defaultMobilBoxParams: ConstructorParameters<typeof MobilBox> = [
 		100, 100, 100, 100, 0.8, 1000, 10000, 0.1
@@ -477,6 +478,10 @@
 				+
 			</button>
 		</div>
+	</section>
+
+	<section>
+		<CityMap cityMap={cityWeights} />
 	</section>
 
 	<GaSettings
