@@ -8,18 +8,33 @@
 	export let vehicles: MobilBox[];
 	export let cityMap: number[][];
 
+	const geneColors = [
+		'bg-blue-200',
+		'bg-green-200',
+		'bg-yellow-200',
+		'bg-red-200',
+		'bg-orange-200',
+		'bg-purple-200',
+		'bg-pink-200',
+		'bg-indigo-200',
+		'bg-teal-200',
+		'bg-cyan-200'
+	];
+
 	const props: [keyof EpochSummaryData, string][] = [
 		['defectiveRate', 'Defective Rate'],
 		['bestFitness', 'Best Fitness']
 	];
 
 	$: profitScores = summary.topIndividuals.map((individual, individualIdx) =>
-		vehicles.map((vehicle, routeIdx) =>
-			vehicle.getProfitScore(
-				summary.truckInfo[individualIdx][routeIdx].map(([_, v]) => v),
-				cityMap
+		vehicles
+			.filter((v, i) => summary.truckInfo[individualIdx][i])
+			.map((vehicle, routeIdx) =>
+				vehicle.getProfitScore(
+					summary.truckInfo[individualIdx][routeIdx].map(([_, v]) => v),
+					cityMap
+				)
 			)
-		)
 	);
 </script>
 
@@ -64,12 +79,9 @@
 							<div class="flex flex-wrap gap-2">
 								{#each individual.genes as gene}
 									<div
-										class:bg-gray-300={gene === -1}
-										class:bg-blue-200={gene === 0}
-										class:bg-green-200={gene === 1}
-										class:bg-yellow-200={gene === 2}
-										class:bg-red-200={gene === 3}
-										class="px-2"
+										class="px-2 {gene === -1
+											? 'bg-gray-300'
+											: geneColors[gene % geneColors.length]}"
 									>
 										{gene}
 									</div>
@@ -126,7 +138,7 @@
 										</div>
 
 										<div>
-											Net profit: {profitScores[individualIdx][routeIdx][2].toFixed(2)}
+											Net profit: {profitScores[individualIdx][routeIdx][1].toFixed(2)}
 										</div>
 									</div>
 								{/each}
