@@ -149,6 +149,8 @@
 		const results: EpochSummaryData[] = [];
 		chromosomeProgress = 0;
 
+		const workers: Promise<unknown>[] = [];
+
 		for (let crossoverMethod of gaSettings.tryAll.crossoverMethod) {
 			for (let mutationMethod of gaSettings.tryAll.mutationMethod) {
 				for (
@@ -166,31 +168,91 @@
 							mutationRate <= gaSettings.tryAll.mutationRate.max;
 							mutationRate += gaSettings.tryAll.mutationRate.step
 						) {
-							await runGa(
-								gaSettings.gaSeed,
-								gaSettings.tryAll.targetEpochs,
-								targetIndividuals,
-								crossoverRate,
-								mutationRate,
-								crossoverMethod,
-								mutationMethod,
-								true
-							);
+							const pn = new Promise<void>((resolve) => {
+								const worker = new Worker(new URL('./GARunner.ts', import.meta.url), {
+									type: 'module'
+								});
 
-							// Pick the last of the epoch summaries, change the epoch name to the settings
-							const lastSummary = epochSummaries[0];
-							lastSummary.description = `c: ${CrossoverTypeLabels[crossoverMethod]}, m: ${MutationTypeLabels[mutationMethod]}, ti: ${targetIndividuals}, c%: ${crossoverRate}, m%: ${mutationRate}`;
+								worker.onmessage = (e) => {
+									const data = e.data;
+									if ('chromosomeProgress' in e.data) {
+										chromosomeProgress += data.chromosomeProgress;
+									} else if ('epochSummaries' in e.data) {
+										const lastSummary: EpochSummaryData = data.epochSummaries[0];
+										lastSummary.description = `c: ${CrossoverTypeLabels[crossoverMethod]}, m: ${MutationTypeLabels[mutationMethod]}, ti: ${targetIndividuals}, c%: ${crossoverRate}, m%: ${mutationRate}`;
 
-							results.push(lastSummary);
+										// make sure to also recast the chromosome and vehicleload objects
+										lastSummary.topIndividuals = lastSummary.topIndividuals.map((c) => {
+											const newC = new Chromosome(c.genes);
+											newC.calculatedFitness = c.calculatedFitness;
+											newC.calculatedDefective = c.calculatedDefective;
+											newC.route = c.route;
+											return newC;
+										});
 
-							await wait(0);
+										lastSummary.truckInfo = lastSummary.truckInfo.map((truck) =>
+											truck.map((route) =>
+												route.map(([i, v]) => [
+													i,
+													new VehicleLoad(
+														v.width,
+														v.height,
+														v.depth,
+														v.weight,
+														v.originCity,
+														v.destinationCity
+													)
+												])
+											)
+										);
+										results.push(lastSummary);
+										worker.terminate();
+										resolve();
+									}
+								};
+
+								worker.postMessage({
+									vehicles: vehicles,
+									vehicleLoad: vehicleLoad,
+									runGaParams: {
+										gaSeed: gaSettings.gaSeed,
+										targetEpochs: gaSettings.tryAll.targetEpochs,
+										targetIndividuals: targetIndividuals,
+										crossoverRate: crossoverRate,
+										mutationRate: mutationRate,
+										crossoverMethod: crossoverMethod,
+										mutationMethod: mutationMethod,
+										fitScoreMultiplier: gaSettings.fitScoreMultiplier,
+										gaSettings: gaSettings
+									}
+								});
+							});
+
+							workers.push(pn);
+
+							// await runGa(
+							// 	gaSettings.gaSeed,
+							// 	gaSettings.tryAll.targetEpochs,
+							// 	targetIndividuals,
+							// 	crossoverRate,
+							// 	mutationRate,
+							// 	crossoverMethod,
+							// 	mutationMethod,
+							// 	true
+							// );
 						}
 					}
 				}
 			}
 		}
 
+		// wait for all workers to finish
+		await Promise.all(workers);
+		await wait(0);
+
 		epochSummaries = results;
+		console.log(results);
+		console.log('Done!');
 	}
 
 	async function runGa(
