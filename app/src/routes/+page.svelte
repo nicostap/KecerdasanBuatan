@@ -15,9 +15,6 @@
 
 	import { onMount } from 'svelte';
 
-	export const prerender = false;
-	export const ssr = false;
-
 	ChartJS.register(Title, LineElement, LinearScale, PointElement, CategoryScale);
 
 	const targetEpochs = 10;
