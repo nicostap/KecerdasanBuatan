@@ -89,21 +89,21 @@
 <section class="flex flex-col gap-4">
 	<section class="flex gap-4">
 		<div class="w-1/2">
-			<h2 class="text-2xl font-bold mb-2">Best Fitness over Epoch</h2>
+			<h2 class="text-2xl font-bold mb-2">Best Fitness over Iteration</h2>
 			<Line data={chart1} options={{}} height={120} />
 		</div>
 		<div class="w-1/2">
-			<h2 class="text-2xl font-bold mb-2">Defective Rate over Epoch</h2>
+			<h2 class="text-2xl font-bold mb-2">Defective Rate over Iteration</h2>
 			<Line data={chart2} options={{}} height={120} />
 		</div>
 	</section>
 	<section class="flex gap-4">
 		<div class="w-1/2">
-			<h2 class="text-2xl font-bold mb-2">Best Fitness over Epoch (Truncated)</h2>
+			<h2 class="text-2xl font-bold mb-2">Best Fitness over Iteration (Truncated)</h2>
 			<Line data={chart3} options={{}} height={120} />
 		</div>
 		<div class="w-1/2">
-			<h2 class="text-2xl font-bold mb-2">Defective Rate over Epoch (Truncated)</h2>
+			<h2 class="text-2xl font-bold mb-2">Defective Rate over Iteration (Truncated)</h2>
 			<Line data={chart4} options={{}} height={120} />
 		</div>
 	</section>

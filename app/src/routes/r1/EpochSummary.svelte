@@ -50,97 +50,83 @@
 		role="button"
 		tabindex={-1}
 	>
-		<div>
-			<div class="font-bold">Epoch #{summary.epoch}</div>
-			{#if summary.description}
-				<div class="text-xs">{summary.description}</div>
-			{/if}
-		</div>
-		<div class="ml-auto flex gap-2">
-			<div class="text-xs">
-				<span class="text-gray-500 font-semibold mr-1">Defective Rate</span>
-				<span class="text-gray-500">{summary['defectiveRate'].toFixed(3)}</span>
-			</div>
-			<div class="text-xs">
-				<span class="text-gray-500 font-semibold mr-1">Best Fitness</span>
-				<span class="text-gray-500">{summary['bestFitness'].toFixed(2)}</span>
-			</div>
-		</div>
+	Generation #{summary.epoch}
 	</section>
 
 	{#if selected}
 		<section class="px-4 py-2 bg-blue-100">
-			<h2 class="text-lg font-bold mb-2">Top Individuals</h2>
+			<h2 class="text-lg font-bold mb-2">Top Picks</h2>
 			<div class="flex flex-col">
 				{#each summary.topIndividuals as individual, individualIdx}
 					<div class="flex flex-col mb-4">
-						<div class="flex">
-							<div class="mr-2 font-bold">
-								#{individualIdx + 1}
-							</div>
-							<div class="flex flex-wrap gap-2">
-								{#each individual.genes as gene}
-									<div
-										class="px-2 {gene === -1
-											? 'bg-gray-300'
-											: geneColors[gene % geneColors.length]}"
-									>
-										{gene}
-									</div>
-								{/each}
-							</div>
-							<div class="ml-auto">
-								Fitness: {individual.calculatedFitness.toFixed(2)}
-							</div>
-						</div>
-
 						<div class="ml-4 mt-2">
-							<h3 class="text-sm font-bold">Truck Routes</h3>
+							<h3 class="text-sm font-bold">Option #{individualIdx + 1}</h3>
 							<div class="flex flex-wrap gap-2">
 								{#each individual.route as route, routeIdx}
-									<div class="flex flex-col bg-blue-200 px-2 py-1">
-										<div class="font-bold">Truck #{routeIdx}</div>
-										<div class="flex flex-wrap">
-											{#each route as cityIdx, idx}
-												<div class="px-2">
-													{cityLabels[cityIdx]}
+									<div class="grid grid-cols-1 gap-4 p-4">
+										<div class="flex flex-col bg-blue-200 p-4 rounded-lg shadow-md">
+											<div class="flex items-start">
+												<div class="relative flex flex-col flex-row items-center mr-4">
+													<div
+														class="absolute text-3xl text-white top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center font-bold text-lg py-1" style="-webkit-text-stroke: 1px black; text-stroke: 1px black;"
+													>
+														{routeIdx}
+													</div>
+													<img class="top-1/2 left-1/2" width="100px" src="https://cdn.discordapp.com/attachments/746329602221146256/1257001438828302386/cargo-truck.png?ex=6682d150&is=66817fd0&hm=630bb962aaa3a6df8ddae896810fe8f0c16230c14fe59eee9f371fb5fc300ab9&">
 												</div>
-												{#if idx < route.length - 1}
-													&rarr;
-												{/if}
-											{/each}
-										</div>
-										<div class="flex flex-wrap gap-1">
-											{#each summary.truckInfo[individualIdx][routeIdx] as truckLoad}
-												<div class="flex flex-col bg-gray-200 px-2">
-													{truckLoad[0]}
+
+												<!-- Data container -->
+												<div class="flex flex-col">
+													<div class="font-bold mb-1">Route :</div>
+													<div class="flex flex-wrap items-center mb-2">
+														{#each route as cityIdx, idx}
+															<div class="px-2">
+																{cityLabels[cityIdx]}
+															</div>
+															{#if idx < route.length - 1}
+																<span class="mx-1 text-blue-600">&rarr;</span>
+															{/if}
+														{/each}
+													</div>
+
+													<div class="flex flex-wrap gap-2 mb-2">
+														<div class="font-bold mb-1">Items :</div>
+														{#each summary.truckInfo[individualIdx][routeIdx] as truckLoad}
+														<div class="relative flex flex-col flex-row items-center">
+															<div
+																class="absolute text-2xl text-white top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center font-bold text-lg py-1" style="-webkit-text-stroke: 1px black; text-stroke: 1px black;"
+															>
+																{truckLoad[0]}
+															</div>
+															<img class="top-1/2 left-1/2" width="32px" src="https://cdn.discordapp.com/attachments/746329602221146256/1257004450971783299/box.png?ex=6682d41f&is=6681829f&hm=dc69e9c9c81dd151888f951d903b9fe8c4976d02186f144ee536361f1679fc6f&">
+														</div>
+														{/each}
+													</div>
+
+													<div class="text-gray-700 mb-1">
+														<span class="font-semibold">Weight:</span>
+														{summary.truckInfo[individualIdx][routeIdx].reduce(
+															(acc, val) => acc + val[1].getWeight(),
+															0
+														)} / {vehicles[routeIdx].capacityWeight}
+													</div>
+
+													<div class="text-gray-700 mb-1">
+														<span class="font-semibold">Profit from items:</span>
+														{profitScores[individualIdx][routeIdx].income.toFixed(2)}
+													</div>
+
+													<div class="text-gray-700 mb-1">
+														<span class="font-semibold">Courier costs:</span>
+														{profitScores[individualIdx][routeIdx].outcome.toFixed(2)}
+													</div>
+
+													<div class="text-gray-700 mb-1">
+														<span class="font-semibold">Net profit:</span>
+														{profitScores[individualIdx][routeIdx].profit.toFixed(2)}
+													</div>
 												</div>
-											{/each}
-										</div>
-
-										<div>
-											Weight: {summary.truckInfo[individualIdx][routeIdx].reduce(
-												(acc, val) => acc + val[1].getWeight(),
-												0
-											)} / {vehicles[routeIdx].capacityWeight}
-										</div>
-
-										<div>
-											Fit score: {vehicles[routeIdx].getFitScore(
-												summary.truckInfo[individualIdx][routeIdx].map(([, v]) => v)
-											)}
-										</div>
-
-										<div>
-											Profit from items: {profitScores[individualIdx][routeIdx].income.toFixed(2)}
-										</div>
-
-										<div>
-											Courier costs: {profitScores[individualIdx][routeIdx].outcome.toFixed(2)}
-										</div>
-
-										<div>
-											Net profit: {profitScores[individualIdx][routeIdx].profit.toFixed(2)}
+											</div>
 										</div>
 									</div>
 								{/each}

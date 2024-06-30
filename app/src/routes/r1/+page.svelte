@@ -520,7 +520,7 @@
 		</section>
 	{/if}
 	<section>
-		<h1 class="text-2xl font-bold mb-2">Epoch List</h1>
+		<h1 class="text-2xl font-bold mb-2">Results</h1>
 		<div class="flex flex-col gap-2">
 			{#each epochSummaries as epochSummary}
 				<EpochSummary
