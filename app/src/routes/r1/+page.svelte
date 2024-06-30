@@ -440,55 +440,6 @@
 			await wait(0);
 		}
 	}
-	// Define functions for clearing and running GA
-	function clearEpochSummaries() {
-		// Logic to clear epoch summaries
-		epochSummaries = [];
-	}
-
-	function runGa2() {
-		// Logic to run GA
-		runGa(
-			gaSettings.gaSeed,
-			gaSettings.once.targetEpochs,
-			gaSettings.once.targetIndividuals,
-			gaSettings.once.crossoverRate,
-			gaSettings.once.mutationRate,
-			gaSettings.once.crossoverMethod,
-			gaSettings.once.mutationMethod
-		);
-	}
-
-	//Script UI
-
-	let showGenerator = false;
-	let showItemGenerator = false;
-
-	function deleteAllVehicles() {
-		vehicles = [];
-	}
-
-	function toggleGenerator() {
-		showGenerator = !showGenerator;
-	}
-
-	function addVehicle() {
-		vehicles = [...vehicles, new MobilBox(...defaultMobilBoxParams)];
-	}
-
-	function toggleItemGenerator() {
-		showItemGenerator = !showItemGenerator;
-	}
-
-	function deleteAllItems() {
-		vehicleLoad = [];
-	}
-
-	function addVehicleLoad() {
-		vehicleLoad = [...vehicleLoad, new VehicleLoad(10, 10, 10, 10, 0, 1, false)];
-	}
-
-	let selectedSection = 'Truk';
 </script>
 
 <nav class="bg-blue-900 text-gray-200 py-4">
@@ -701,78 +652,27 @@
 			/>
 		</section>
 	{/if}
-
-	{#if selectedSection === 'Charts' && gaSettings.mode === GAMode.Once}
-		<section id="Charts" class="mt-8">	
-			
-			<div class="mb-6">
-				
-				<div class="bg-white rounded-lg shadow-lg p-4">
-								<button class="btn-clear" on:click={clearEpochSummaries}>
-					<svg
-						class="w-4 h-4 mr-2"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-						><path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M6 18L18 6M6 6l12 12"
-						></path></svg
-					>
-					Clear
-				</button>
-				<button class="btn-run" on:click={runGa2}>
-					<svg
-						class="w-4 h-4 mr-2"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-						><path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M5 12h14M12 5l7 7-7 7"
-						></path></svg
-					>
-					Run
-				</button>
-					<SummaryCharts summaries={epochSummaries} targetEpochs={gaSettings.once.targetEpochs} />
-				</div>		
-				<div class="p-4">
-
-			</div>
-
-			<!-- Epoch List Section -->
-			<section>
-				<div class="bg-white rounded-lg shadow-lg p-4">
-				<div class="mb-6">
-					<h2 class="text-2xl font-bold text-gray-800 mb-4">Epoch List</h2>
-					<!-- Additional content related to the Epoch List -->
-				</div>
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-					{#each epochSummaries as epochSummary}
-						<EpochSummary
-							{cityMap}
-							{vehicles}
-							{pathMap}
-							summary={epochSummary}
-							selected={epochSummary.epoch === selectedEpoch}
-							on:click={() => {
-								selectedEpoch = selectedEpoch === epochSummary.epoch ? -1 : epochSummary.epoch;
-							}}
-						/>
-					{/each}
-				</div>
-				</div>
-			</section>
-		</section>
-	{/if}
-
-	
+	<section>
+		<h1 class="text-2xl font-bold mb-2">Epoch List</h1>
+		<div class="flex flex-col gap-2">
+			{#each epochSummaries as epochSummary}
+				<EpochSummary
+					{cityMap}
+					{pathMap}
+					{vehicles}
+					summary={epochSummary}
+					selected={epochSummary.epoch === selectedEpoch}
+					on:click={() => {
+						if (selectedEpoch === epochSummary.epoch) {
+							selectedEpoch = -1;
+						} else {
+							selectedEpoch = epochSummary.epoch;
+						}
+					}}
+				/>
+			{/each}
+		</div>
+	</section>
 </main>
 
 <style>
