@@ -43,16 +43,16 @@
 
 	let vehicleLoad: VehicleLoad[] = [];
 
-	// const cityWeights = [
-	// 	[0, 61, 35, 0, 91, 12],
-	// 	[61, 0, 0, 0, 0, 90],
-	// 	[35, 0, 0, 100, 41, 0],
-	// 	[0, 0, 100, 0, 23, 54],
-	// 	[91, 0, 41, 23, 0, 0],
-	// 	[12, 90, 0, 54, 0, 0]
-	// ];
+	const cityWeights = [
+		[0, 61, 35, 0, 91, 12],
+		[61, 0, 0, 0, 0, 90],
+		[35, 0, 0, 100, 41, 0],
+		[0, 0, 100, 0, 23, 54],
+		[91, 0, 41, 23, 0, 0],
+		[12, 90, 0, 54, 0, 0]
+	];
 
-	const cityWeights = createAdjacencyMatrix(data.locations);
+	// const cityWeights = createAdjacencyMatrix(data.locations);
 
 	const mapResult = generateDijkstra(cityWeights);
 	const cityMap = mapResult.distances;
@@ -439,105 +439,409 @@
 			chromosomeProgress++;
 			await wait(0);
 		}
+
+		
 	}
+	function clearEpochSummaries() {
+		// Logic to clear epoch summaries
+		epochSummaries = [];
+	}
+
+	function runGa2() {
+		// Logic to run GA
+		runGa(
+			gaSettings.gaSeed,
+			gaSettings.once.targetEpochs,
+			gaSettings.once.targetIndividuals,
+			gaSettings.once.crossoverRate,
+			gaSettings.once.mutationRate,
+			gaSettings.once.crossoverMethod,
+			gaSettings.once.mutationMethod
+		);
+	}
+
+	function deleteAllVehicles() {
+		vehicles = [];
+	}
+
+	//Script UI
+
+	let showGenerator = false;
+	let showItemGenerator = false;
+
+	function toggleGenerator() {
+		showGenerator = !showGenerator;
+	}
+
+	function addVehicle() {
+		vehicles = [...vehicles, new MobilBox(...defaultMobilBoxParams)];
+	}
+
+	function toggleItemGenerator() {
+		showItemGenerator = !showItemGenerator;
+	}
+
+	function deleteAllItems() {
+		vehicleLoad = [];
+	}
+
+	function addVehicleLoad() {
+		vehicleLoad = [...vehicleLoad, new VehicleLoad(10, 10, 10, 10, 0, 1, false)];
+	}
+
+	let selectedSection = 'Truk';
 </script>
 
-<main class="p-4 flex flex-col gap-4">
-	<section>
-		<h1 class="text-2xl font-bold mb-2">Vehicles</h1>
-		<div class="flex gap-4 flex-wrap">
-			<TruckSeed bind:vehicles />
-			{#each vehicles as vehicle, idx}
-				<Truck
-					{idx}
-					bind:vehicle
-					on:delete={() => (vehicles = vehicles.filter((v) => v !== vehicle))}
-					on:duplicate={(e) => (vehicles = [...vehicles, e.detail.copy()])}
-				/>
-			{/each}
-			<button
-				class="bg-gray-300 min-h-36 py-4 px-4 w-48"
-				on:click={() => (vehicles = [...vehicles, new MobilBox(...defaultMobilBoxParams)])}
-			>
-				+
-			</button>
+<nav class="bg-blue-900 text-gray-200 py-4">
+	<div class="container mx-20 px-2 ">
+		<div class="flex items-center justify-between">
+			<div class="flex items-center space-x-6">
+				<a
+					href="#Truk"
+					class:active={selectedSection === 'Truk'}
+					class="nav-link"
+					on:click|preventDefault={() => (selectedSection = 'Truk')}
+				>
+					Truk
+				</a>
+				<a
+					href="#Barang"
+					class:active={selectedSection === 'Barang'}
+					class="nav-link"
+					on:click|preventDefault={() => (selectedSection = 'Barang')}
+				>
+					Barang
+				</a>
+				<a
+					href="#CityMap"
+					class:active={selectedSection === 'CityMap'}
+					class="nav-link"
+					on:click|preventDefault={() => (selectedSection = 'CityMap')}
+				>
+					City Map
+				</a>
+				<a
+					href="#SettingGA"
+					class:active={selectedSection === 'SettingGA'}
+					class="nav-link"
+					on:click|preventDefault={() => (selectedSection = 'SettingGA')}
+				>
+					Setting GA
+				</a>
+				<a
+					href="#Charts"
+					class:active={selectedSection === 'Charts'}
+					class="nav-link"
+					on:click|preventDefault={() => (selectedSection = 'Charts')}
+				>
+					Charts
+				</a>
+			</div>
 		</div>
-	</section>
-	<section>
-		<h1 class="text-2xl font-bold mb-2">Barang</h1>
-		<div class="flex gap-4 flex-wrap">
-			<BarangSeed bind:vehicleLoad />
-			{#each vehicleLoad as item, idx}
-				<Barang
-					{idx}
-					bind:item
-					{cityLabels}
-					{cityWeights}
-					{cityMap}
-					on:delete={() => (vehicleLoad = vehicleLoad.filter((v) => v !== item))}
-					on:duplicate={(e) => (vehicleLoad = [...vehicleLoad, e.detail.copy()])}
-				/>
-			{/each}
+	</div>
+</nav>
+
+<main class="p-4 flex flex-col gap-4 bg-gradient-to-br from-blue-200 to-blue-300 rounded-lg shadow-lg">
+	{#if selectedSection === 'Truk'}
+		<section
+			id="Truk"
+			class="my-4 p-5 bg-gradient-to-r from-green-200 to-green-100 border-2 border-blue-300 rounded-lg shadow-lg"
+		>
+			<h1 class="text-3xl font-bold text-red-900 mb-6">Manage Vehicles</h1>
+			<button
+				class="px-4 py-2 bg-blue-400 hover:bg-blue-500 text-white font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+				on:click={toggleGenerator}
+			>
+				{showGenerator ? 'Hide Generator' : 'Generator'}
+			</button>
 
 			<button
-				class="bg-orange-200 min-h-36 py-4 px-4 w-48"
-				on:click={() => (vehicleLoad = [...vehicleLoad, new VehicleLoad(5, 5, 5, 2, 0, 0)])}
+				class="px-4 py-2 bg-blue-400 hover:bg-blue-500 text-white font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+				on:click={deleteAllVehicles}
 			>
-				+
+				Delete All Vehicles
 			</button>
-		</div>
-	</section>
 
-	<section>
-		<CityMap cityMap={cityWeights} />
-	</section>
+			<div style="height: 20px;"></div>
 
-	<GaSettings
-		run={() => {
-			runGa(
-				gaSettings.gaSeed,
-				gaSettings.once.targetEpochs,
-				gaSettings.once.targetIndividuals,
-				gaSettings.once.crossoverRate,
-				gaSettings.once.mutationRate,
-				gaSettings.once.crossoverMethod,
-				gaSettings.once.mutationMethod
-			);
-		}}
-		runAll={() => {
-			runGaTryAll();
-		}}
-		bind:settings={gaSettings}
-		progressMax={gaSettings.mode === GAMode.Once
-			? gaSettings.once.targetEpochs
-			: tryAllTargetEpochsTotal}
-		progress={chromosomeProgress}
-	/>
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+				{#each vehicles as vehicle, idx}
+					<div class="flex flex-col justify-center items-center">
+						<Truck
+							{idx}
+							bind:vehicle
+							on:delete={() => (vehicles = vehicles.filter((v) => v !== vehicle))}
+							on:duplicate={(e) => (vehicles = [...vehicles, e.detail.copy()])}
+						/>
+					</div>
+				{/each}
+				<button
+					class="bg-gradient-to-br from-blue-400 to-blue-500 hover:from-green-500 hover:to-blue-600 py-3 px-6 text-white font-semibold text-lg hover:shadow-lg rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-300"
+					on:click={addVehicle}
+				>
+					+Add Vehicle
+				</button>
+			</div>
+		</section>
 
-	{#if gaSettings.mode === GAMode.Once}
-		<section>
-			<SummaryCharts summaries={epochSummaries} targetEpochs={gaSettings.once.targetEpochs} />
+		<!-- Popup for generator -->
+		{#if showGenerator}
+			<!-- Popup overlay -->
+			<div class="popup-overlay">
+				<div class="popup-content bg-white rounded-lg shadow-lg p-6">
+					<!-- Include the TruckSeed component here -->
+					<TruckSeed bind:vehicles />
+					<div class="mt-4">
+						<button
+							class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-white rounded-md shadow-md font-semibold focus:outline-none focus:ring-2 focus:ring-gray-400"
+							on:click={toggleGenerator}
+						>
+							Close
+						</button>
+					</div>
+				</div>
+			</div>
+		{/if}
+	{/if}
+
+	{#if selectedSection === 'Barang'}
+		<section
+			id="Barang"
+			class="my-4 p-5 bg-gradient-to-r from-yellow-200 to-yellow-100 border-2 border-orange-300 rounded-lg shadow-lg"
+		>
+			<h1 class="text-3xl font-bold text-red-900 mb-6">Manage Items</h1>
+			<button
+				class="px-4 py-2 bg-orange-400 hover:bg-orange-500 text-white font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+				on:click={toggleItemGenerator}
+			>
+				{showItemGenerator ? 'Hide Item Generator' : 'Item Generator'}
+			</button>
+
+			<button
+				class="px-4 py-2 bg-orange-400 hover:bg-orange-500 text-white font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+				on:click={deleteAllItems}
+			>
+				Delete All Items
+			</button>
+
+			<div style="height: 20px;"></div>
+
+			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+				{#each vehicleLoad as item, idx}
+					<div class="flex flex-col justify-center items-center">
+						<Barang
+							{idx}
+							bind:item
+							{cityLabels}
+							{cityWeights}
+							{cityMap}
+							on:delete={() => (vehicleLoad = vehicleLoad.filter((v) => v !== item))}
+							on:duplicate={(e) => (vehicleLoad = [...vehicleLoad, e.detail.copy()])}
+						/>
+					</div>
+				{/each}
+				<button
+					class="bg-gradient-to-br from-orange-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 py-3 px-6 text-white font-semibold text-lg hover:shadow-lg rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 transition duration-300"
+					on:click={addVehicleLoad}
+				>
+					+Add Item
+				</button>
+			</div>
+		</section>
+
+		<!-- Popup for item generator -->
+		{#if showItemGenerator}
+			<!-- Popup overlay -->
+			<div class="popup-overlay">
+				<div class="popup-content bg-white rounded-lg shadow-lg p-6">
+					<!-- Include the BarangSeed component here -->
+					<BarangSeed bind:vehicleLoad />
+					<div class="mt-4">
+						<button
+							class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-white rounded-md shadow-md font-semibold focus:outline-none focus:ring-2 focus:ring-gray-400"
+							on:click={toggleItemGenerator}
+						>
+							Close
+						</button>
+					</div>
+				</div>
+			</div>
+		{/if}
+	{/if}
+
+	{#if selectedSection === 'CityMap'}
+		<section id="CityMap" class="py-6 px-4">
+			<div class="bg-white rounded-lg shadow-lg p-4">
+				<CityMap cityMap={cityWeights} />
+			</div>
 		</section>
 	{/if}
-	<section>
-		<h1 class="text-2xl font-bold mb-2">Results</h1>
-		<div class="flex flex-col gap-2">
-			{#each epochSummaries as epochSummary}
-				<EpochSummary
-					{cityMap}
-					{pathMap}
-					{vehicles}
-					summary={epochSummary}
-					selected={epochSummary.epoch === selectedEpoch}
-					on:click={() => {
-						if (selectedEpoch === epochSummary.epoch) {
-							selectedEpoch = -1;
-						} else {
-							selectedEpoch = epochSummary.epoch;
-						}
-					}}
-				/>
-			{/each}
-		</div>
-	</section>
+
+	{#if selectedSection === 'SettingGA'}
+		<section id="SettingGA">
+			<GaSettings
+				run={() => {
+					runGa(
+						gaSettings.gaSeed,
+						gaSettings.once.targetEpochs,
+						gaSettings.once.targetIndividuals,
+						gaSettings.once.crossoverRate,
+						gaSettings.once.mutationRate,
+						gaSettings.once.crossoverMethod,
+						gaSettings.once.mutationMethod
+					);
+				}}
+				runAll={() => {
+					runGaTryAll();
+				}}
+				bind:settings={gaSettings}
+				progressMax={gaSettings.mode === GAMode.Once
+					? gaSettings.once.targetEpochs
+					: tryAllTargetEpochsTotal}
+				progress={chromosomeProgress}
+			/>
+		</section>
+	{/if}
+
+	{#if selectedSection === 'Charts' && gaSettings.mode === GAMode.Once}
+		<section id="Charts" class="mt-8">	
+			
+			<div class="mb-6">
+				
+				<div class="bg-white rounded-lg shadow-lg p-4">
+								<button class="btn-clear" on:click={clearEpochSummaries}>
+					<svg
+						class="w-4 h-4 mr-2"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						xmlns="http://www.w3.org/2000/svg"
+						><path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M6 18L18 6M6 6l12 12"
+						></path></svg
+					>
+					Clear
+				</button>
+				<button class="btn-run" on:click={runGa2}>
+					<svg
+						class="w-4 h-4 mr-2"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24"
+						xmlns="http://www.w3.org/2000/svg"
+						><path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M5 12h14M12 5l7 7-7 7"
+						></path></svg
+					>
+					Run
+				</button>
+					<SummaryCharts summaries={epochSummaries} targetEpochs={gaSettings.once.targetEpochs} />
+				</div>		
+				<div class="p-4">
+
+			</div>
+
+			<!-- Epoch List Section -->
+			<section>
+				<div class="bg-white rounded-lg shadow-lg p-4">
+				<div class="mb-6">
+					<h2 class="text-2xl font-bold text-gray-800 mb-4">Epoch List</h2>
+					<!-- Additional content related to the Epoch List -->
+				</div>
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+					{#each epochSummaries as epochSummary}
+						<EpochSummary
+							{cityMap}
+							{vehicles}
+							{pathMap}
+							summary={epochSummary}
+							selected={epochSummary.epoch === selectedEpoch}
+							on:click={() => {
+								selectedEpoch = selectedEpoch === epochSummary.epoch ? -1 : epochSummary.epoch;
+							}}
+						/>
+					{/each}
+				</div>
+				</div>
+			</section>
+		</section>
+	{/if}
+
+	
 </main>
+
+<style>
+	.nav-link {
+		padding: 1rem; 
+		border-bottom: 2px solid transparent;
+		transition: border-color 0.3s ease; 
+		font-size: 19px;
+		text-decoration: none;
+		color: #ffffff;
+	}
+
+	.nav-link:hover {
+		border-color: #4a4a4a;
+	}
+
+	.nav-link.active {
+		border-color: #ff0000;
+		font-weight: bold;
+		color: #ff0000;
+	}
+
+	nav {
+		position: sticky;
+		top: 0;
+		z-index: 1000;
+		background-color: rgb(1, 20, 49); 
+		transition: background-color 0.3s ease;
+	}
+	.popup-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.5);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+
+	.popup-content {
+		background-color: white;
+		border-radius: 8px;
+		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+		padding: 20px;
+	}
+	.btn-clear {
+		background-color: #4299e1; /* Blue background */
+		color: #ffffff;
+		padding: 0.75rem 1.5rem;
+		border-radius: 0.25rem;
+		transition: background-color 0.3s ease;
+	}
+
+	.btn-clear:hover {
+		background-color: #3182ce; /* Darker blue on hover */
+	}
+
+	.btn-run {
+		background-color: #48bb78; /* Green background */
+		color: #ffffff;
+		padding: 0.75rem 1.5rem;
+		border-radius: 0.25rem;
+		transition: background-color 0.3s ease;
+	}
+
+	.btn-run:hover {
+		background-color: #38a169; /* Darker green on hover */
+	}
+</style>

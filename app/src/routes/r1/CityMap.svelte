@@ -36,8 +36,10 @@
 	};
 </script>
 
-<h1 class="text-2xl font-bold">City Map</h1>
 
-<VisSingleContainer {data} height={512}>
-	<VisGraph {nodeLabel} {linkLabel} {forceLayoutSettings} nodeSize={50} />
-</VisSingleContainer>
+<section class="py-6 px-4">
+	<h1 class="text-2xl font-bold mb-4">City Map</h1>
+		<VisSingleContainer {data} height={512}>
+			<VisGraph {nodeLabel} {linkLabel} {forceLayoutSettings} nodeSize={50} />
+		</VisSingleContainer>
+</section>

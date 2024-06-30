@@ -83,46 +83,60 @@
 	}
 </script>
 
-<div class="bg-orange-200 min-h-36 py-4 px-4 w-96 flex flex-col">
-	<div class="font-bold text-xl mb-4">Generator</div>
-	<label class="flex pb-0.5">
-		seed:
-		<input type="text" class="ml-auto px-2" bind:value={seed} />
-	</label>
-	<label class="flex pb-0.5">
-		amount:
-		<input type="number" class="ml-auto px-2" bind:value={amount} />
-	</label>
+<div class="bg-gray-300 rounded-lg shadow-lg p-6 w-96">
+	<div class="font-bold text-2xl mb-4 text-gray-800">Generator</div>
+	<div class="pb-2">
+		<label class="flex items-center pb-1">
+			<span class="text-gray-700">Seed:</span>
+			<input
+				type="text"
+				class="ml-auto px-3 py-1 rounded-md border border-gray-400 focus:outline-none focus:border-gray-600"
+				bind:value={seed}
+			/>
+		</label>
+		<label class="flex items-center pb-1">
+			<span class="text-gray-700">Amount:</span>
+			<input
+				type="number"
+				class="ml-auto px-3 py-1 rounded-md border border-gray-400 focus:outline-none focus:border-gray-600"
+				bind:value={amount}
+			/>
+		</label>
+	</div>
 	{#each editableNumbers as [key, label, title]}
-		<div class="flex pb-0.5">
-			{label}:
-			<div class="ml-auto flex">
+		<div class="flex items-center pb-2">
+			<span class="text-gray-700">{label}:</span>
+			<div class="ml-auto flex items-center space-x-2">
 				<input
 					type="number"
 					title="{title} min"
 					bind:value={params[key].min}
-					class="w-20 ml-auto px-0.5"
+					class="w-20 px-3 py-1 rounded-md border border-gray-400 focus:outline-none focus:border-gray-600"
 					step={0.001}
 				/>
 				<input
 					type="number"
 					title="{title} max"
 					bind:value={params[key].max}
-					class="w-20 ml-1 px-0.5"
+					class="w-20 px-3 py-1 rounded-md border border-gray-400 focus:outline-none focus:border-gray-600"
 					step={0.001}
 				/>
 				<input
 					type="number"
 					title="{title} step"
 					bind:value={params[key].step}
-					class="w-20 ml-1 px-0.5"
+					class="w-20 px-3 py-1 rounded-md border border-gray-400 focus:outline-none focus:border-gray-600"
 					step={0.001}
 				/>
 			</div>
 		</div>
 	{/each}
-	<div class="mt-4">
-		<button class="px-2 bg-green-200" on:click={generate}>Clean & Generate</button>
-		<button class="px-2 bg-yellow-200" on:click={reset}>Reset Defaults</button>
+	<div class="mt-4 flex justify-end space-x-4">
+		<button class="px-4 py-2 bg-green-300 hover:bg-green-400 text-white rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-400" on:click={generate}>
+			Clean & Generate
+		</button>
+		<button class="px-4 py-2 bg-yellow-300 hover:bg-yellow-400 text-white rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-yellow-400" on:click={reset}>
+			Reset Defaults
+		</button>
 	</div>
 </div>
