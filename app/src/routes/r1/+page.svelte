@@ -54,7 +54,9 @@
 
 	// const cityWeights = createAdjacencyMatrix(data.locations);
 
-	const cityMap = generateDijkstra(cityWeights);
+	const mapResult = generateDijkstra(cityWeights);
+	const cityMap = mapResult.distances;
+	const pathMap = mapResult.paths;
 
 	let selectedEpoch = -1;
 	let gaSettings: GASettings = {
@@ -302,9 +304,9 @@
 				chromosome.calculatedFitness += gaSettings.fitScoreMultiplier * fitScore;
 				isDefective ||= fitScore !== 0;
 
-				let calculation = vehicles[i].getProfitScore(load, cityMap);
-				chromosome.calculatedFitness += calculation[1];
-				chromosome.route.push(calculation[0]);
+				let calculation = vehicles[i].getProfitScore(load, cityMap, pathMap);
+				chromosome.calculatedFitness += calculation.profit;
+				chromosome.route.push(calculation.route);
 			}
 			chromosome.calculatedDefective = isDefective;
 
@@ -402,9 +404,9 @@
 						gaSettings.fitScoreMultiplier * vehicles[j].getFitScore(load);
 					isDefective ||= fitScore !== 0;
 
-					let calculation = vehicles[j].getProfitScore(load, cityMap);
-					chromosomes[i].route.push(calculation[0]);
-					chromosomes[i].calculatedFitness += calculation[1];
+					let calculation = vehicles[j].getProfitScore(load, cityMap, pathMap);
+					chromosomes[i].route.push(calculation.route);
+					chromosomes[i].calculatedFitness += calculation.profit;
 				}
 				chromosomes[i].calculatedDefective = isDefective;
 
@@ -549,6 +551,7 @@
 			{#each epochSummaries as epochSummary}
 				<EpochSummary
 					{cityMap}
+					{pathMap}
 					{vehicles}
 					summary={epochSummary}
 					selected={epochSummary.epoch === selectedEpoch}

@@ -7,6 +7,7 @@
 	export let selected = false;
 	export let vehicles: MobilBox[];
 	export let cityMap: number[][];
+	export let pathMap: number[][][];
 
 	const geneColors = [
 		'bg-blue-200',
@@ -32,7 +33,8 @@
 			.map((vehicle, routeIdx) =>
 				vehicle.getProfitScore(
 					summary.truckInfo[individualIdx][routeIdx].map(([_, v]) => v),
-					cityMap
+					cityMap,
+					pathMap
 				)
 			)
 	);
@@ -130,15 +132,15 @@
 										</div>
 
 										<div>
-											Profit from items: {profitScores[individualIdx][routeIdx][2].toFixed(2)}
+											Profit from items: {profitScores[individualIdx][routeIdx].income.toFixed(2)}
 										</div>
 
 										<div>
-											Courier costs: {profitScores[individualIdx][routeIdx][3].toFixed(2)}
+											Courier costs: {profitScores[individualIdx][routeIdx].outcome.toFixed(2)}
 										</div>
 
 										<div>
-											Net profit: {profitScores[individualIdx][routeIdx][1].toFixed(2)}
+											Net profit: {profitScores[individualIdx][routeIdx].profit.toFixed(2)}
 										</div>
 									</div>
 								{/each}
