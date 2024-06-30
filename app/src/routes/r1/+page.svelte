@@ -43,16 +43,16 @@
 
 	let vehicleLoad: VehicleLoad[] = [];
 
-	// const cityWeights = [
-	// 	[0, 61, 35, 0, 91, 12],
-	// 	[61, 0, 0, 0, 0, 90],
-	// 	[35, 0, 0, 100, 41, 0],
-	// 	[0, 0, 100, 0, 23, 54],
-	// 	[91, 0, 41, 23, 0, 0],
-	// 	[12, 90, 0, 54, 0, 0]
-	// ];
+	const cityWeights = [
+		[0, 61, 35, 0, 91, 12],
+		[61, 0, 0, 0, 0, 90],
+		[35, 0, 0, 100, 41, 0],
+		[0, 0, 100, 0, 23, 54],
+		[91, 0, 41, 23, 0, 0],
+		[12, 90, 0, 54, 0, 0]
+	];
 
-	const cityWeights = createAdjacencyMatrix(data.locations);
+	// const cityWeights = createAdjacencyMatrix(data.locations);
 
 	const cityMap = generateDijkstra(cityWeights);
 
