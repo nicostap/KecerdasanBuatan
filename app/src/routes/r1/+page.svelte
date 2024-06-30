@@ -439,7 +439,57 @@
 			chromosomeProgress++;
 			await wait(0);
 		}
+
+		
 	}
+	function clearEpochSummaries() {
+		// Logic to clear epoch summaries
+		epochSummaries = [];
+	}
+
+	function runGa2() {
+		// Logic to run GA
+		runGa(
+			gaSettings.gaSeed,
+			gaSettings.once.targetEpochs,
+			gaSettings.once.targetIndividuals,
+			gaSettings.once.crossoverRate,
+			gaSettings.once.mutationRate,
+			gaSettings.once.crossoverMethod,
+			gaSettings.once.mutationMethod
+		);
+	}
+
+	function deleteAllVehicles() {
+		vehicles = [];
+	}
+
+	//Script UI
+
+	let showGenerator = false;
+	let showItemGenerator = false;
+
+	function toggleGenerator() {
+		showGenerator = !showGenerator;
+	}
+
+	function addVehicle() {
+		vehicles = [...vehicles, new MobilBox(...defaultMobilBoxParams)];
+	}
+
+	function toggleItemGenerator() {
+		showItemGenerator = !showItemGenerator;
+	}
+
+	function deleteAllItems() {
+		vehicleLoad = [];
+	}
+
+	function addVehicleLoad() {
+		vehicleLoad = [...vehicleLoad, new VehicleLoad(10, 10, 10, 10, 0, 1, false)];
+	}
+
+	let selectedSection = 'Truk';
 </script>
 
 <nav class="bg-blue-900 text-gray-200 py-4">
