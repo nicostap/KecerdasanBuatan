@@ -1,6 +1,3 @@
-export const prerender = false;
-export const ssr = false;
-
 import type { Actions, PageServerLoad } from "./$types";
 import { prisma } from "$lib/server/prisma";
 import { fail } from "@sveltejs/kit";
