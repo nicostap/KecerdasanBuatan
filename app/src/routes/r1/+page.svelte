@@ -541,6 +541,55 @@
 	</div>
 </nav>
 
+<nav class="bg-blue-900 text-gray-200 py-4">
+	<div class="container mx-20 px-2 ">
+		<div class="flex items-center justify-between">
+			<div class="flex items-center space-x-6">
+				<a
+					href="#Truk"
+					class:active={selectedSection === 'Truk'}
+					class="nav-link"
+					on:click|preventDefault={() => (selectedSection = 'Truk')}
+				>
+					Truk
+				</a>
+				<a
+					href="#Barang"
+					class:active={selectedSection === 'Barang'}
+					class="nav-link"
+					on:click|preventDefault={() => (selectedSection = 'Barang')}
+				>
+					Barang
+				</a>
+				<a
+					href="#CityMap"
+					class:active={selectedSection === 'CityMap'}
+					class="nav-link"
+					on:click|preventDefault={() => (selectedSection = 'CityMap')}
+				>
+					City Map
+				</a>
+				<a
+					href="#SettingGA"
+					class:active={selectedSection === 'SettingGA'}
+					class="nav-link"
+					on:click|preventDefault={() => (selectedSection = 'SettingGA')}
+				>
+					Setting GA
+				</a>
+				<a
+					href="#Charts"
+					class:active={selectedSection === 'Charts'}
+					class="nav-link"
+					on:click|preventDefault={() => (selectedSection = 'Charts')}
+				>
+					Charts
+				</a>
+			</div>
+		</div>
+	</div>
+</nav>
+
 <main class="p-4 flex flex-col gap-4 bg-gradient-to-br from-blue-200 to-blue-300 rounded-lg shadow-lg">
 	{#if selectedSection === 'Truk'}
 		<section
