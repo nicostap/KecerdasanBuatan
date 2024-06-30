@@ -30,7 +30,7 @@
 	import { cityLabels } from '$lib/r1/Data';
 	import SummaryCharts from './SummaryCharts.svelte';
 	import CityMap from './CityMap.svelte';
-	import { createAdjacencyMatrix } from '$lib/map/AdjacencyMatrix'
+	import { createAdjacencyMatrix } from '$lib/map/AdjacencyMatrix';
 	import type { PageData } from '../$types';
 
 	export let data: PageData;
@@ -439,8 +439,6 @@
 			chromosomeProgress++;
 			await wait(0);
 		}
-
-		
 	}
 	function clearEpochSummaries() {
 		// Logic to clear epoch summaries
@@ -493,7 +491,7 @@
 </script>
 
 <nav class="bg-blue-900 text-gray-200 py-4">
-	<div class="container mx-20 px-2 ">
+	<div class="container mx-20 px-2">
 		<div class="flex items-center justify-between">
 			<div class="flex items-center space-x-6">
 				<a
@@ -541,7 +539,9 @@
 	</div>
 </nav>
 
-<main class="p-4 flex flex-col gap-4 bg-gradient-to-br from-blue-200 to-blue-300 rounded-lg shadow-lg">
+<main
+	class="p-4 flex flex-col gap-4 bg-gradient-to-br from-blue-200 to-blue-300 rounded-lg shadow-lg"
+>
 	{#if selectedSection === 'Truk'}
 		<section
 			id="Truk"
@@ -564,7 +564,7 @@
 
 			<div style="height: 20px;"></div>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+			<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 				{#each vehicles as vehicle, idx}
 					<div class="flex flex-col justify-center items-center">
 						<Truck
@@ -626,7 +626,7 @@
 
 			<div style="height: 20px;"></div>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+			<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 				{#each vehicleLoad as item, idx}
 					<div class="flex flex-col justify-center items-center">
 						<Barang
@@ -704,83 +704,78 @@
 	{/if}
 
 	{#if selectedSection === 'Charts' && gaSettings.mode === GAMode.Once}
-		<section id="Charts" class="mt-8">	
-			
+		<section id="Charts" class="mt-8">
 			<div class="mb-6">
-				
 				<div class="bg-white rounded-lg shadow-lg p-4">
-								<button class="btn-clear" on:click={clearEpochSummaries}>
-					<svg
-						class="w-4 h-4 mr-2"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-						><path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M6 18L18 6M6 6l12 12"
-						></path></svg
-					>
-					Clear
-				</button>
-				<button class="btn-run" on:click={runGa2}>
-					<svg
-						class="w-4 h-4 mr-2"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24"
-						xmlns="http://www.w3.org/2000/svg"
-						><path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M5 12h14M12 5l7 7-7 7"
-						></path></svg
-					>
-					Run
-				</button>
+					<button class="btn-clear" on:click={clearEpochSummaries}>
+						<svg
+							class="w-4 h-4 mr-2"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							xmlns="http://www.w3.org/2000/svg"
+							><path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M6 18L18 6M6 6l12 12"
+							></path></svg
+						>
+						Clear
+					</button>
+					<button class="btn-run" on:click={runGa2}>
+						<svg
+							class="w-4 h-4 mr-2"
+							fill="none"
+							stroke="currentColor"
+							viewBox="0 0 24 24"
+							xmlns="http://www.w3.org/2000/svg"
+							><path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M5 12h14M12 5l7 7-7 7"
+							></path></svg
+						>
+						Run
+					</button>
 					<SummaryCharts summaries={epochSummaries} targetEpochs={gaSettings.once.targetEpochs} />
-				</div>		
-				<div class="p-4">
+				</div>
+				<div class="p-4"></div>
 
+				<!-- Epoch List Section -->
+				<section>
+					<div class="bg-white rounded-lg shadow-lg p-4">
+						<div class="mb-6">
+							<h2 class="text-2xl font-bold text-gray-800 mb-4">Epoch List</h2>
+							<!-- Additional content related to the Epoch List -->
+						</div>
+						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+							{#each epochSummaries as epochSummary}
+								<EpochSummary
+									{cityMap}
+									{vehicles}
+									{pathMap}
+									summary={epochSummary}
+									selected={epochSummary.epoch === selectedEpoch}
+									on:click={() => {
+										selectedEpoch = selectedEpoch === epochSummary.epoch ? -1 : epochSummary.epoch;
+									}}
+								/>
+							{/each}
+						</div>
+					</div>
+				</section>
 			</div>
-
-			<!-- Epoch List Section -->
-			<section>
-				<div class="bg-white rounded-lg shadow-lg p-4">
-				<div class="mb-6">
-					<h2 class="text-2xl font-bold text-gray-800 mb-4">Epoch List</h2>
-					<!-- Additional content related to the Epoch List -->
-				</div>
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-					{#each epochSummaries as epochSummary}
-						<EpochSummary
-							{cityMap}
-							{vehicles}
-							{pathMap}
-							summary={epochSummary}
-							selected={epochSummary.epoch === selectedEpoch}
-							on:click={() => {
-								selectedEpoch = selectedEpoch === epochSummary.epoch ? -1 : epochSummary.epoch;
-							}}
-						/>
-					{/each}
-				</div>
-				</div>
-			</section>
 		</section>
 	{/if}
-
-	
 </main>
 
 <style>
 	.nav-link {
-		padding: 1rem; 
+		padding: 1rem;
 		border-bottom: 2px solid transparent;
-		transition: border-color 0.3s ease; 
+		transition: border-color 0.3s ease;
 		font-size: 19px;
 		text-decoration: none;
 		color: #ffffff;
@@ -800,7 +795,7 @@
 		position: sticky;
 		top: 0;
 		z-index: 1000;
-		background-color: rgb(1, 20, 49); 
+		background-color: rgb(1, 20, 49);
 		transition: background-color 0.3s ease;
 	}
 	.popup-overlay {
