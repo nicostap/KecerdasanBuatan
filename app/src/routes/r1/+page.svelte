@@ -30,6 +30,10 @@
 	import { cityLabels } from '$lib/r1/Data';
 	import SummaryCharts from './SummaryCharts.svelte';
 	import CityMap from './CityMap.svelte';
+	import { createAdjacencyMatrix } from '$lib/map/AdjacencyMatrix'
+	import type { PageData } from '../$types';
+
+	export let data: PageData;
 
 	const defaultMobilBoxParams: ConstructorParameters<typeof MobilBox> = [
 		100, 100, 100, 100, 0.8, 1000, 10000, 0.1
@@ -39,14 +43,16 @@
 
 	let vehicleLoad: VehicleLoad[] = [];
 
-	const cityWeights = [
-		[0, 61, 35, 0, 91, 12],
-		[61, 0, 0, 0, 0, 90],
-		[35, 0, 0, 100, 41, 0],
-		[0, 0, 100, 0, 23, 54],
-		[91, 0, 41, 23, 0, 0],
-		[12, 90, 0, 54, 0, 0]
-	];
+	// const cityWeights = [
+	// 	[0, 61, 35, 0, 91, 12],
+	// 	[61, 0, 0, 0, 0, 90],
+	// 	[35, 0, 0, 100, 41, 0],
+	// 	[0, 0, 100, 0, 23, 54],
+	// 	[91, 0, 41, 23, 0, 0],
+	// 	[12, 90, 0, 54, 0, 0]
+	// ];
+
+	const cityWeights = createAdjacencyMatrix(data.locations);
 
 	const cityMap = generateDijkstra(cityWeights);
 

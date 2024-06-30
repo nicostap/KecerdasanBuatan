@@ -5,6 +5,7 @@
   import 'leaflet/dist/leaflet.css';
   import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
   import 'leaflet-control-geocoder';
+  import { createAdjacencyMatrix } from '$lib/map/AdjacencyMatrix';
 
   export let data: PageData;
 
@@ -13,7 +14,6 @@
   let marker: L.Marker | null = null;
   let geocodeMarker: L.Marker | null = null;
   let map: L.Map;
-  let locationArr: L.Marker[] | null = null;
   
   onMount(() => {
     const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -34,14 +34,9 @@
 
     map.zoomControl.setPosition('bottomright');
 
-    createAdjacencyMatrix();
+    createAdjacencyMatrix(locations);
 
-    locationArr = [];
-    locations.forEach((loc: { lat: number; lng: number; name: ((layer: L.Layer) => L.Content) | L.Content | L.Popup; }) => {
-      locationArr.push(L.marker([loc.lat, loc.lng]).bindPopup(loc.name))
-    });
-
-    const markersLayer = L.layerGroup(locationArr).addTo(map);
+    const markersLayer = L.layerGroup(drawLoc()).addTo(map);
     const polylineLayer = L.layerGroup(drawPaths()).addTo(map);
 
     const geocoder = L.Control.geocoder({
@@ -106,54 +101,13 @@
     }
   }
 
-  export function createAdjacencyMatrix(): number[][] {
-    const size: number = locations.length;
-    const matrix: number[][] = [];
-    for (let i = 0; i < size; i++) {
-      matrix[i] = [];
-      for (let j = 0; j < size; j++) {
-        matrix[i][j] = i === j ? 0 : Infinity;
-      }
-    }
-
-    for (let i = 0; i < size; i++) {
-      for (let j = i + 1; j < size; j++) {
-        const distance = Haversine(locations[i].lat, locations[j].lat, locations[i].lng, locations[j].lng);
-        matrix[i][j] = distance;
-        matrix[j][i] = distance;
-      }
-    }
-  
-    console.log("Distances Matrix:");
-    console.table(matrix);
-  
-    return matrix;
+  function drawLoc() {
+    let arr:L.Marker[] = [];
+    locations.forEach((loc: { lat: number; lng: number; name: ((layer: L.Layer) => L.Content) | L.Content | L.Popup; }) => {
+      arr.push(L.marker([loc.lat, loc.lng]).bindPopup(loc.name))
+    });
+    return arr;
   }
-
-  function Haversine(lat1: number, lat2: number, lon1: number, lon2: number){
-    // To radian
-    lon1 =  lon1 * Math.PI / 180;
-    lon2 = lon2 * Math.PI / 180;
-    lat1 = lat1 * Math.PI / 180;
-    lat2 = lat2 * Math.PI / 180;
-    
-    // Haversine formula 
-    let dlon = lon2 - lon1; 
-    let dlat = lat2 - lat1;
-    let a = Math.pow(Math.sin(dlat / 2), 2)
-             + Math.cos(lat1) * Math.cos(lat2)
-             * Math.pow(Math.sin(dlon / 2),2);
-           
-    let c = 2 * Math.asin(Math.sqrt(a));
-
-    // Radius of earth in kilometers
-    let r = 6371;
-
-    // Calculate the result
-    return(c * r);
-  }
-
-
   function drawPaths() {
     let arr: L.Polyline[] = [];
     locations.forEach(start => {
