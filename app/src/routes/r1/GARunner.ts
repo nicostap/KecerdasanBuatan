@@ -1,4 +1,4 @@
-import { wait } from '$lib/kb/libs';
+import { generateDijkstra, wait } from '$lib/kb/libs';
 import { CrossoverType, MutationType, Chromosome } from '$lib/r1/Chromosome';
 import { Random } from '$lib/r1/Random';
 import { VehicleLoad } from '$lib/r1/VehicleLoad';
@@ -9,7 +9,7 @@ import type { GASettings } from './GASettings.svelte';
 let vehicles: MobilBox[] = [];
 let vehicleLoad: VehicleLoad[] = [];
 
-const cityMap = [
+const cityWeights = [
 	[0, 61, 35, 0, 91, 12],
 	[61, 0, 0, 0, 0, 90],
 	[35, 0, 0, 100, 41, 0],
@@ -17,6 +17,10 @@ const cityMap = [
 	[91, 0, 41, 23, 0, 0],
 	[12, 90, 0, 54, 0, 0]
 ];
+
+const mapResult = generateDijkstra(cityWeights);
+const cityMap = mapResult.distances;
+const pathMap = mapResult.paths;
 
 onmessage = async (e) => {
 	const data = e.data;
@@ -130,9 +134,9 @@ async function runGa(
 			chromosome.calculatedFitness += fitScoreMultiplier * fitScore;
 			isDefective ||= fitScore !== 0;
 
-			const calculation = vehicles[i].getProfitScore(load, cityMap);
-			chromosome.calculatedFitness += calculation[1];
-			chromosome.route.push(calculation[0]);
+			const calculation = vehicles[i].getProfitScore(load, cityMap, pathMap);
+			chromosome.calculatedFitness += calculation.profit;
+			chromosome.route.push(calculation.route);
 		}
 		chromosome.calculatedDefective = isDefective;
 
@@ -219,9 +223,9 @@ async function runGa(
 					gaSettings.fitScoreMultiplier * vehicles[j].getFitScore(load);
 				isDefective ||= fitScore !== 0;
 
-				const calculation = vehicles[j].getProfitScore(load, cityMap);
-				chromosomes[i].route.push(calculation[0]);
-				chromosomes[i].calculatedFitness += calculation[1];
+				const calculation = vehicles[j].getProfitScore(load, cityMap, pathMap);
+				chromosomes[i].route.push(calculation.route);
+				chromosomes[i].calculatedFitness += calculation.profit;
 			}
 			chromosomes[i].calculatedDefective = isDefective;
 

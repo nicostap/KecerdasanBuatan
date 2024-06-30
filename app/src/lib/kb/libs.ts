@@ -5,55 +5,78 @@ export function wait(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function minDistance(dist, sptSet, V) {
-	let min = Number.MAX_VALUE;
-	let min_index = -1;
-
-	for (let v = 0; v < V; v++) {
-		if (sptSet[v] == false && dist[v] <= min) {
-			min = dist[v];
-			min_index = v;
-		}
-	}
-	return min_index;
-}
-
 export function dijkstra(graph, src) {
-	const V = graph.length;
-	const dist = new Array(V);
-	const sptSet = new Array(V);
+    const V = graph.length;
+    const dist = new Array(V);
+    const sptSet = new Array(V);
+    const prev = new Array(V).fill(null);
 
-	for (let i = 0; i < V; i++) {
-		dist[i] = Number.MAX_VALUE;
-		sptSet[i] = false;
-	}
+    for (let i = 0; i < V; i++) {
+        dist[i] = Number.MAX_VALUE;
+        sptSet[i] = false;
+    }
 
-	dist[src] = 0;
+    dist[src] = 0;
 
-	for (let count = 0; count < V - 1; count++) {
-		const u = minDistance(dist, sptSet, V);
-		sptSet[u] = true;
-		for (let v = 0; v < V; v++) {
-			if (
-				!sptSet[v] &&
-				graph[u][v] != 0 &&
-				dist[u] != Number.MAX_VALUE &&
-				dist[u] + graph[u][v] < dist[v]
-			) {
-				dist[v] = dist[u] + graph[u][v];
-			}
-		}
-	}
+    for (let count = 0; count < V - 1; count++) {
+        const u = minDistance(dist, sptSet, V);
+        sptSet[u] = true;
+        for (let v = 0; v < V; v++) {
+            if (
+                !sptSet[v] &&
+                graph[u][v] != 0 &&
+                dist[u] != Number.MAX_VALUE &&
+                dist[u] + graph[u][v] < dist[v]
+            ) {
+                dist[v] = dist[u] + graph[u][v];
+                prev[v] = u;
+            }
+        }
+    }
 
-	return dist;
+    return { dist, prev };
 }
 
-export function generateDijkstra(graph): number[][] {
-	const dijkstraMap = new Array(graph.length);
-	for (let i = 0; i < graph.length; i++) {
-		dijkstraMap[i] = dijkstra(graph, i);
-	}
-	return dijkstraMap;
+function minDistance(dist, sptSet, V) {
+    let min = Number.MAX_VALUE;
+    let minIndex = -1;
+
+    for (let v = 0; v < V; v++) {
+        if (!sptSet[v] && dist[v] <= min) {
+            min = dist[v];
+            minIndex = v;
+        }
+    }
+
+    return minIndex;
+}
+
+export function generateDijkstra(graph) {
+    const dijkstraMap = new Array(graph.length);
+    const pathMap = new Array(graph.length);
+
+    for (let i = 0; i < graph.length; i++) {
+        const { dist, prev } = dijkstra(graph, i);
+        dijkstraMap[i] = dist;
+        pathMap[i] = new Array(graph.length);
+        for (let j = 0; j < graph.length; j++) {
+            pathMap[i][j] = reconstructPath(prev, j, i);
+        }
+    }
+
+    return { distances: dijkstraMap, paths: pathMap };
+}
+
+function reconstructPath(prev, j, src) {
+    const path = [];
+    for (let at = j; at != null; at = prev[at]) {
+        path.push(at);
+    }
+    path.reverse();
+    if (path[0] === src) {
+        path.shift(); // Remove the first city (source city)
+    }
+    return path;
 }
 
 export function perm(xs) {
@@ -72,10 +95,10 @@ export function perm(xs) {
 	return ret;
 }
 
-export function generateTSP(dist, nodes) {
+export function generateTSP(dist, nodes, path) {
 	const permutation = perm(nodes);
 	let minDist = Number.MAX_VALUE;
-	let ans;
+	let route;
 	for (let i = 0; i < permutation.length; i++) {
 		let cur_dist = dist[0][permutation[i][0]];
 		for (let j = 0; j < nodes.length - 1; j++) {
@@ -84,13 +107,17 @@ export function generateTSP(dist, nodes) {
 		cur_dist += dist[permutation[i][nodes.length - 1]][0];
 		if (minDist > cur_dist) {
 			minDist = cur_dist;
-			ans = permutation[i];
+			route = permutation[i];
 		}
 	}
-	if (nodes.length == 0) return [[0], 0];
-	ans.unshift(0);
-	ans.push(0);
-	return [ans, minDist];
+	if (nodes.length == 0) return {route: [0], dist: 0};
+	route.unshift(0);
+	route.push(0);
+	const actualRoute = [0];
+	for(let i = 0; i < route.length - 1; i++) {
+		actualRoute.push(...path[route[i]][route[i + 1]]);
+	}
+	return {route: actualRoute, dist: minDist};
 }
 
 export function randomInteger(min, max) {

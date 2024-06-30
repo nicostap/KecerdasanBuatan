@@ -67,7 +67,7 @@ export class MobilBox extends AbstractDeliveryVehicle {
 		return -overloadScore;
 	}
 
-	public getProfitScore(items: VehicleLoad[], map: number[][]) {
+	public getProfitScore(items: VehicleLoad[], map: number[][], pathMap: number[][][]) {
 		let profit = 0;
 		const destinations: number[] = [];
 
@@ -87,14 +87,14 @@ export class MobilBox extends AbstractDeliveryVehicle {
 
 			if (!destinations.includes(item.destinationCity)) destinations.push(item.destinationCity);
 		}
-		const result = generateTSP(map, destinations);
+		const result = generateTSP(map, destinations, pathMap);
 
 		// result[0] contains route, result[1] contains distance
-		return [
-			result[0],
-			profit - result[1] * (this.pricePerKm + this.fuelConsumptionPerKm * this.fuelPricePerLiter),
-			profit,
-			result[1] * (this.pricePerKm + this.fuelConsumptionPerKm * this.fuelPricePerLiter)
-		];
+		return {
+			route: result.route,
+			profit: profit - result.dist * (this.pricePerKm + this.fuelConsumptionPerKm * this.fuelPricePerLiter),
+			income: profit,
+			outcome: result.dist * (this.pricePerKm + this.fuelConsumptionPerKm * this.fuelPricePerLiter)
+		};
 	}
 }
