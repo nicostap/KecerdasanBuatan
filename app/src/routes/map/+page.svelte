@@ -1,7 +1,5 @@
-<!-- MapComponent.svelte -->
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { saveLocations, loadLocations } from '$lib/map/locationService'; // Adjust the import path as needed
   import type { PageData } from '../$types';
   import L from 'leaflet';
   import 'leaflet/dist/leaflet.css';
@@ -76,6 +74,8 @@
 
     geocoder.on('markgeocode', (e: L.Control.Geocoder.MarkGeocodeEvent) => {
       document.getElementById('name')?.setAttribute('value', e.geocode.name);
+      document.getElementById('latitude')?.setAttribute('value', e.geocode.center.lat.toString());
+      document.getElementById('longitude')?.setAttribute('value', e.geocode.center.lng.toString());
 
       if (geocodeMarker) {
         map.removeLayer(geocodeMarker);
@@ -90,7 +90,7 @@
   function addMarkerAndPopup(latlng: L.LatLng) {
     L.popup({ offset: L.point(0, -30) })
       .setLatLng(latlng)
-      .setContent(latlng.toString())
+      .setContent("(" + latlng.lat.toFixed(6) + ", " + latlng.lng.toFixed(6) + ")")
       .openOn(map);
 
     if (marker) {
@@ -160,46 +160,69 @@
 </script>
 
 <style>
-  /* Ensure modal overlays are on top of map */
   #coordinate {
-    z-index: 1001; /* Ensure modal is above leaflet map */
+    z-index: 1001;
   }
 </style>
 
 <div class="container mx-auto p-5">
-  <div class="flex flex-wrap p-5 bg-[bisque]">
+  <div class="flex flex-wrap p-5 bg-[bisque] shadow-xl">
+
+    <!-- Map -->
     <div class="w-full lg:w-3/4 p-0 pr-4 mb-3">
-      <div id="map" class="h-[75vh] relative">
+      <div id="map" class="h-[75vh] relative border-2 border-black">
         <div id="coordinate" class="absolute text-white bg-black p-2">Latitude:<br>Longitude:</div>
       </div>
     </div>
-    <div class="w-full lg:w-1/4 bg-white p-3 h-[75vh] overflow-y-auto">
-      <button class="btn btn-primary mb-3 w-full" on:click={() => showModal = true}>Save Location</button>
-      <div class="card">
-        <form action="?/createLocation" method="POST">
-          <label for="name">Name</label>
-          <input type="text" id="name" name="name" required />
+
+    <!-- List? -->
+    <div class="w-full lg:w-1/4 bg-[bisque] p-3 h-[75vh] overflow-y-auto">
+
+      <!-- Add New Location -->
+      <div class="bg-white shadow-md rounded-lg overflow-hidden mb-4">
+        <h2 class="bg-blue-500 text-white text-center py-3 px-4 text-xl font-bold">Add Location</h2>
+        <form action="?/createLocation" method="POST" class="bg-white shadow-md rounded p-6">
+          <div class="mb-4">
+            <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Name</label>
+            <input type="text" id="name" name="name" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+          </div>
           
-          <label for="lat">Latitude</label>
-          <input type="number" id="latitude" name="latitude" step="any" required readonly/>
+          <div class="mb-4">
+            <label for="latitude" class="block text-gray-700 text-sm font-bold mb-2">Latitude</label>
+            <input type="number" id="latitude" name="latitude" step="any" required readonly class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+          </div>
           
-          <label for="lng">Longitude</label>
-          <input type="number" id="longitude" name="longitude" step="any" required readonly />
+          <div class="mb-4">
+            <label for="longitude" class="block text-gray-700 text-sm font-bold mb-2">Longitude</label>
+            <input type="number" id="longitude" name="longitude" step="any" required readonly class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+          </div>
           
-          <button type="submit" class="bg-blue-200">Submit</button>
+          <div class="flex items-center justify-between">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
+          </div>
         </form>
-        <div class="card-header">Saved Locations</div>
-        <ul id="savedLocationsList" class="list-group list-group-flush">
-          {#each locations as location}
-            <li class="list-group-item"><strong>{location.name}</strong><br>Latitude: {location.lat.toFixed(3)}, Longitude: {location.lng.toFixed(3)}</li>
-            <li class="list-group-item">
-              <form action="?/deleteLocation&id={location.id}" method="POST">
-                <button type="submit">DELETE</button>
-              </form>
-            </li>
-          {/each}
-        </ul>
       </div>
+
+      <!-- Saved Locations -->
+      <div class="bg-white shadow-md rounded-lg overflow-hidden">
+        <div class="bg-blue-500 text-white text-center py-3 px-4 text-xl font-bold">Saved Locations</div>
+        <div class="p-6 space-y-4">
+          {#each locations as location}
+            <div class="bg-white shadow-md rounded-lg p-4">
+              <div class="mb-2">
+                <strong class="text-lg text-gray-800">{location.name}</strong>
+                <p class="text-sm text-gray-600">Latitude: {location.lat.toFixed(3)} <br> Longitude: {location.lng.toFixed(3)}</p>
+              </div>
+              <form action="?/deleteLocation&id={location.id}" method="POST" class="text-right">
+                <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">DELETE</button>
+              </form>
+            </div>
+          {:else}
+            <div>There are no location saved</div>
+          {/each}
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
