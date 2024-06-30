@@ -6,18 +6,15 @@
   import 'leaflet-control-geocoder/dist/Control.Geocoder.css';
   import 'leaflet-control-geocoder';
 
-  export let data: PageData
+  export let data: PageData;
 
-  $: ({ locations } = data)
-  console.log(data)
-  // Other existing code...  
-  let showModal = false;
-  let locationName = "";
+  $: ({ locations } = data);
+  
   let marker: L.Marker | null = null;
   let geocodeMarker: L.Marker | null = null;
   let map: L.Map;
-  let adjacencyMatrix: number[][] = [];
-
+  let locationArr: L.Marker[] | null = null;
+  
   onMount(() => {
     const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -37,7 +34,15 @@
 
     map.zoomControl.setPosition('bottomright');
 
-    const savedLocationsLayer = L.layerGroup().addTo(map);
+    createAdjacencyMatrix();
+
+    locationArr = [];
+    locations.forEach((loc: { lat: number; lng: number; name: ((layer: L.Layer) => L.Content) | L.Content | L.Popup; }) => {
+      locationArr.push(L.marker([loc.lat, loc.lng]).bindPopup(loc.name))
+    });
+
+    const markersLayer = L.layerGroup(locationArr).addTo(map);
+    const polylineLayer = L.layerGroup(drawPaths()).addTo(map);
 
     const geocoder = L.Control.geocoder({
       defaultMarkGeocode: true
@@ -49,7 +54,8 @@
     };
 
     const overlayMaps = {
-      "Saved Locations": savedLocationsLayer
+      "Locations": markersLayer,
+      "Graph": polylineLayer
     };
 
     L.control.layers(baseMaps, overlayMaps).addTo(map);
@@ -100,62 +106,62 @@
     }
   }
 
-  function updateDistancesAndMatrix() {
-    const numLocations = locations.length;
-    const distances = initializeAdjacencyMatrix(numLocations);
-
-    for (let i = 0; i < numLocations; i++) {
-      for (let j = i + 1; j < numLocations; j++) {
-        const distance = locations[i].latlng.distanceTo(locations[j].latlng) / 1000;
-        distances[i][j] = distance;
-        distances[j][i] = distance;
-      }
-    }
-
-    console.log("Distances Matrix:");
-    console.table(distances);
-
-    adjacencyMatrix = distances;
-    drawPaths(findAllPaths(adjacencyMatrix));
-  }
-
-  function initializeAdjacencyMatrix(numLocations: number): number[][] {
+  export function createAdjacencyMatrix(): number[][] {
+    const size: number = locations.length;
     const matrix: number[][] = [];
-    for (let i = 0; i < numLocations; i++) {
+    for (let i = 0; i < size; i++) {
       matrix[i] = [];
-      for (let j = 0; j < numLocations; j++) {
+      for (let j = 0; j < size; j++) {
         matrix[i][j] = i === j ? 0 : Infinity;
       }
     }
+
+    for (let i = 0; i < size; i++) {
+      for (let j = i + 1; j < size; j++) {
+        const distance = Haversine(locations[i].lat, locations[j].lat, locations[i].lng, locations[j].lng);
+        matrix[i][j] = distance;
+        matrix[j][i] = distance;
+      }
+    }
+  
+    console.log("Distances Matrix:");
+    console.table(matrix);
+  
     return matrix;
   }
 
-  function findAllPaths(matrix: number[][]): number[][] {
-    const numLocations = matrix.length;
-    const paths: number[][] = [];
+  function Haversine(lat1: number, lat2: number, lon1: number, lon2: number){
+    // To radian
+    lon1 =  lon1 * Math.PI / 180;
+    lon2 = lon2 * Math.PI / 180;
+    lat1 = lat1 * Math.PI / 180;
+    lat2 = lat2 * Math.PI / 180;
+    
+    // Haversine formula 
+    let dlon = lon2 - lon1; 
+    let dlat = lat2 - lat1;
+    let a = Math.pow(Math.sin(dlat / 2), 2)
+             + Math.cos(lat1) * Math.cos(lat2)
+             * Math.pow(Math.sin(dlon / 2),2);
+           
+    let c = 2 * Math.asin(Math.sqrt(a));
 
-    function dfs(start: number, path: number[]) {
-      for (let next = 0; next < numLocations; next++) {
-        if (matrix[start][next] !== Infinity && !path.includes(next)) {
-          const newPath = [...path, next];
-          paths.push(newPath);
-          dfs(next, newPath);
-        }
-      }
-    }
+    // Radius of earth in kilometers
+    let r = 6371;
 
-    for (let i = 0; i < numLocations; i++) {
-      dfs(i, [i]);
-    }
-
-    return paths;
+    // Calculate the result
+    return(c * r);
   }
 
-  function drawPaths(paths: number[][]) {
-    paths.forEach(path => {
-      const latlngs = path.map(index => L.latLng(locations[index].lat, locations[index].lng));
-      L.polyline(latlngs, { color: 'blue' }).addTo(map);
+
+  function drawPaths() {
+    let arr: L.Polyline[] = [];
+    locations.forEach(start => {
+      locations.forEach(dest => {
+        arr.push(L.polyline([[start.lat, start.lng], [dest.lat, dest.lng]], {color: 'blue'}));
+      });
     });
+    return arr;
   }
 </script>
 
@@ -211,7 +217,7 @@
             <div class="bg-white shadow-md rounded-lg p-4">
               <div class="mb-2">
                 <strong class="text-lg text-gray-800">{location.name}</strong>
-                <p class="text-sm text-gray-600">Latitude: {location.lat.toFixed(3)} <br> Longitude: {location.lng.toFixed(3)}</p>
+                <p class="text-sm text-gray-600">Latitude: {location.lat.toFixed(6)} <br> Longitude: {location.lng.toFixed(6)}</p>
               </div>
               <form action="?/deleteLocation&id={location.id}" method="POST" class="text-right">
                 <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">DELETE</button>
