@@ -8,8 +8,37 @@ datasource db {
 }
 
 model location {
-  id   Int    @id @default(autoincrement())
-  name String @db.VarChar(255)
-  lat  Float  @db.Float
-  lng  Float  @db.Float
+  id                                  Int      @id @default(autoincrement())
+  name                                String   @db.VarChar(255)
+  lat                                 Float    @db.Float
+  lng                                 Float    @db.Float
+  barang_barang_origin_cityTolocation barang[] @relation("barang_origin_cityTolocation")
+  barang_barang_dest_cityTolocation   barang[] @relation("barang_dest_cityTolocation")
+}
+
+model barang {
+  id                                    Int      @id @default(autoincrement())
+  width                                 Float    @db.Float
+  height                                Float    @db.Float
+  depth                                 Float    @db.Float
+  origin_city                           Int
+  dest_city                             Int
+  must_deliver                          Boolean
+  location_barang_origin_cityTolocation location @relation("barang_origin_cityTolocation", fields: [origin_city], references: [id], onUpdate: Restrict, map: "barang_ibfk_1")
+  location_barang_dest_cityTolocation   location @relation("barang_dest_cityTolocation", fields: [dest_city], references: [id], onUpdate: Restrict, map: "barang_ibfk_2")
+
+  @@index([dest_city], map: "dest_city")
+  @@index([origin_city], map: "origin_city")
+}
+
+model truck {
+  id                   Int   @id @default(autoincrement())
+  cap_width            Float @db.Float
+  cap_height           Float @db.Float
+  cap_depth            Float @db.Float
+  cap_weight           Float @db.Float
+  packing_factor       Float @db.Float
+  price_per_km         Float @db.Float
+  fuel_consumpt_per_km Float @db.Float
+  fuel_price_per_liter Float @db.Float
 }
