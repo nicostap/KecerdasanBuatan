@@ -16,6 +16,9 @@
     let marker: L.Marker | null = null;
     let geocodeMarker: L.Marker | null = null;
     let map: L.Map;
+    let name: string;
+    let lat: string;
+    let lng: string;
     
     onMount(() => {
       const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -71,14 +74,14 @@
         }
         addMarkerAndPopup(e.latlng);
         
-        document.getElementById('latitude')?.setAttribute('value', e.latlng.lat.toString());
-        document.getElementById('longitude')?.setAttribute('value', e.latlng.lng.toString());
+        lat = e.latlng.lat.toString();
+        lng = e.latlng.lng.toString();
       });
   
       geocoder.on('markgeocode', (e: L.Control.Geocoder.MarkGeocodeEvent) => {
-        document.getElementById('name')?.setAttribute('value', e.geocode.name);
-        document.getElementById('latitude')?.setAttribute('value', e.geocode.center.lat.toString());
-        document.getElementById('longitude')?.setAttribute('value', e.geocode.center.lng.toString());
+        name = e.geocode.name;
+        lat = e.geocode.center.lat.toString();
+        lng = e.geocode.center.lng.toString();
   
         if (geocodeMarker) {
           map.removeLayer(geocodeMarker);
@@ -139,31 +142,44 @@
         
         <!-- List? -->
         <div class="w-full lg:w-1/4 bg-[bisque] p-3 h-[75vh] overflow-y-auto">
-            
+    
             <!-- Add New Location -->
             <div class="bg-white shadow-md rounded-lg overflow-hidden mb-4">
-                <h2 class="bg-blue-500 text-white text-center py-3 px-4 text-xl font-bold">Add Location</h2>
-          <form action="?/createLocation" method="POST" class="bg-white shadow-md rounded p-6">
-            <div class="mb-4">
-                <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Name</label>
-                <input type="text" id="name" name="name" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
-            </div>
-            
-            <div class="mb-4">
-                <label for="latitude" class="block text-gray-700 text-sm font-bold mb-2">Latitude</label>
-                <input type="number" id="latitude" name="latitude" step="any" required readonly class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
-            </div>
-            
-            <div class="mb-4">
-                <label for="longitude" class="block text-gray-700 text-sm font-bold mb-2">Longitude</label>
-              <input type="number" id="longitude" name="longitude" step="any" required readonly class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
-            </div>
-            
-            <div class="flex items-center justify-between">
-                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">Submit</button>
-            </div>
-        </form>
-    </div>
+                <h2 class="bg-blue-500 text-white text-center py-3 px-4 text-xl font-bold">Location</h2>
+                <div class="container bg-blue-100 p-4">
+                  <div class="font-bold">Nama: </div>
+                  <div class="mb-2">{locations[0].name}</div>
+                  <div><strong>Latitude: </strong> {locations[0].lat}</div>
+                  <div><strong>Longitude: </strong> {locations[0].lng}</div>
+                </div>
+                <form action="?/createLocation" method="POST" class="bg-white shadow-md rounded p-6">
+                  <div class="mb-4">
+                    <label for="name" class="block text-gray-700 text-sm font-bold mb-2">Name</label>
+                    <input bind:value={name} type="text" id="name" name="name" required class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                  </div>
+                  
+                  <div class="mb-4">
+                    <label for="latitude" class="block text-gray-700 text-sm font-bold mb-2">Latitude</label>
+                    <input bind:value={lat} type="number" id="latitude" name="latitude" step="any" required readonly class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                  </div>
+                  
+                  <div class="mb-4">
+                    <label for="longitude" class="block text-gray-700 text-sm font-bold mb-2">Longitude</label>
+                    <input bind:value={lng} type="number" id="longitude" name="longitude" step="any" required readonly class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                  </div>
+                  
+                  <div class="flex items-center justify-between">
+                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold m-2 py-2 px-4 rounded focus:outline-none focus:shadow-outline">Add New</button>
+                    <form action="?/updateLocation" method="POST">
+                      <input value=0  name="id" hidden/>
+                      <input bind:value={name} type="text" name="name" hidden/>
+                      <input bind:value={lat} type="number" name="latitude" hidden readonly/>
+                      <input bind:value={lng} type="number" name="longitude" hidden readonly/>
+                      <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold m-2 py-2 px-4 rounded focus:outline-none focus:shadow-outline">Update Origin</button>
+                    </form>
+                  </div>
+              </form>
+          </div>
     
         <!-- Saved Locations -->
         <div class="bg-white shadow-xl rounded-lg overflow-hidden">

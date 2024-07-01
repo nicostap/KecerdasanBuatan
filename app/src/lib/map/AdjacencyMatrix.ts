@@ -22,8 +22,8 @@ export function createAdjacencyMatrix(locations: Location[]): number[][] {
         }
     }
 
-    console.log("Distances Matrix:");
-    console.table(matrix);
+    // console.log("Distances Matrix:");
+    // console.table(matrix);
 
     return matrix;
 }

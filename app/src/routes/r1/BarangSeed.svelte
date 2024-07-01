@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { base } from '$app/paths';
 	import { loadState, saveState } from '$lib/StateManager';
 	import { Random } from '$lib/r1/Random';
 	import { VehicleLoad } from '$lib/r1/VehicleLoad';
+	import { item } from '@unovis/ts/components/bullet-legend/style';
 	import { onDestroy, onMount } from 'svelte';
 
 	export let vehicleLoad: VehicleLoad[];
@@ -43,28 +45,37 @@
 	if (browser) {
 		// Load state
 		params = loadState('BarangSeed', defaults);
-		vehicleLoad = loadState<VehicleLoad[]>('BarangSeed.vehicleLoad', []).map(
-			({ width, height, depth, weight, originCity, destinationCity, mustDeliver }) =>
-				new VehicleLoad(width, height, depth, weight, originCity, destinationCity, mustDeliver)
-		);
-		seed = loadState('BarangSeed.seed', defaultSeed);
-		amount = loadState('BarangSeed.amount', defaultAmount);
+		// vehicleLoad = loadState<VehicleLoad[]>('BarangSeed.vehicleLoad', []).map(
+		// 	({ width, height, depth, weight, originCity, destinationCity, mustDeliver }) =>
+		// 		new VehicleLoad(width, height, depth, weight, originCity, destinationCity, mustDeliver)
+		// );
+		// seed = loadState('BarangSeed.seed', defaultSeed);
+		// amount = loadState('BarangSeed.amount', defaultAmount);
 	}
 
 	$: saveState('BarangSeed', params);
-	$: saveState('BarangSeed.vehicleLoad', vehicleLoad);
-	$: saveState('BarangSeed.seed', seed);
-	$: saveState('BarangSeed.amount', amount);
+	// $: saveState('BarangSeed.vehicleLoad', vehicleLoad);
+	// $: saveState('BarangSeed.seed', seed);
+	// $: saveState('BarangSeed.amount', amount);
 
 	function reset() {
 		params = { ...defaults };
-		vehicleLoad = [];
+		// vehicleLoad = [];
 		seed = defaultSeed;
 		amount = defaultAmount;
 	}
 
 	function generate() {
 		const rand = Random.fromString(seed);
+
+		// Delete all vehicles via API
+			fetch(`${base}/r1/api/vehicleLoad`, {
+			method: 'DELETE',
+			body: JSON.stringify(vehicleLoad.filter((v) => v.id !== undefined).map((v) => v.id)),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 
 		vehicleLoad = Array.from({ length: amount }, (_, i) => {
 			return new VehicleLoad(
@@ -79,6 +90,23 @@
 					params.destinationCity.step
 				)
 			);
+		});
+
+			// Add new vehicles via API
+			vehicleLoad.forEach((vehicle) => {
+			fetch(`${base}/r1/api/vehicleLoad`, {
+				method: 'POST',
+				body: JSON.stringify(vehicle.toObject()),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			})
+				.then((res) => res.json())
+				.then((dbVehicle) => {
+					// Need a more proper solution for this, this is just a temporary proof of concept
+					vehicle.id = dbVehicle.id;
+					vehicleLoad = vehicleLoad;
+				});
 		});
 	}
 </script>

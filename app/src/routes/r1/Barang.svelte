@@ -1,12 +1,13 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import type { AbstractDeliveryVehicle } from '$lib/r1/vehicles/AbstractDeliveryVehicle';
 	import type { VehicleLoad } from '$lib/r1/VehicleLoad';
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, onDestroy } from 'svelte';
 
-	export let idx: number = 0;
+	export let idx: number | string = 'new';
 	export let item: VehicleLoad;
 
-	export let cityLabels: string[];
+	export let locations: Object[];
 	export let cityWeights: number[][];
 
 	// cityMap with dijkstra algorithm
@@ -32,8 +33,51 @@
 
 	let editing = false;
 
+	let message = '';
+	let messageTimeoutId: number | undefined = undefined;
+	function timeoutMessage() {
+		// if messageTimeoutId is set, clear it
+		if (messageTimeoutId) {
+			clearTimeout(messageTimeoutId);
+			messageTimeoutId = undefined;
+		}
+		// Set a new timeout message
+		messageTimeoutId = setTimeout(() => {
+			message = '';
+		}, 3000);
+	}
+
 	function edit() {
-		editing = true;
+		editing = !editing;
+
+		// If editing, clear the message
+		if (editing) {
+			clearTimeout(messageTimeoutId);
+			message = '';
+		}
+		// If finished editing, update the item via API
+		if (!editing) {
+			message = 'Saving...';
+			fetch(`${base}/r1/api/vehicleLoad`, {
+				method: 'PUT',
+				body: JSON.stringify([item.toObject()]),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			}).then((res) => {
+				// If 500, then show error message
+				if (res.status === 500) {
+					message = 'Something went wrong when updating vehicle';
+					timeoutMessage();
+				} else if (res.status === 200) {
+					message = 'Saved';
+					timeoutMessage();
+				} else {
+					message = 'Something went wrong';
+					timeoutMessage();
+				}
+			});
+		}
 	}
 
 	function save() {
@@ -53,6 +97,10 @@
 	function duplicate() {
 		dispatch('duplicate', item);
 	}
+
+	onDestroy(() => {
+		clearTimeout(messageTimeoutId);
+	});
 </script>
 
 <div
@@ -69,9 +117,11 @@
 
 	<button
 		type="button"
-		class="px-4 py-2 bg-blue-400 hover:bg-blue-500 transition duration-300 rounded-md shadow-md text-white font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400"
-		on:click={duplicate}>Duplicate</button
+		class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 transition duration-300 rounded-md shadow-md text-white font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-400"
+		on:click={() => dispatch('duplicate', item)}
 	>
+		Duplicate
+	</button>
 
 	{#each editableNumbers as [key, label, title]}
 		<label {title} class="flex items-center py-2">
@@ -103,8 +153,9 @@
 			class="w-24 ml-auto px-3 py-1 rounded-md bg-white border border-gray-300 focus:outline-none focus:border-blue-400"
 			disabled={!editing}
 		>
-			{#each cityLabels as city, i}
-				<option value={i}>{city}</option>
+			{#each locations as city}
+				city
+				<option value={city.id}>{city.name}</option>
 			{/each}
 		</select>
 	</label>
@@ -122,28 +173,37 @@
 		<input
 			type="number"
 			disabled
-			value={cityMap[item.destinationCity][item.originCity]}
+			value={cityMap[item.destinationCity - 1][item.originCity - 1]}
 			class="w-24 ml-auto px-3 py-1 rounded-md bg-gray-200 border border-gray-300 focus:outline-none"
 		/>
 	</label>
-	<div class="flex justify-end pt-4 mt-auto space-x-4">
+	<div class="flex justify-end pt-4 mt-auto space-x-4 items-center">
+		<div class="px-4 mr-auto text-gray-400">
+			{message}
+		</div>
 		{#if !editing}
 			<button
 				type="button"
-				class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 transition duration-300 rounded-md shadow-md text-white font-semibold focus:outline-none focus:ring-2 focus:ring-yellow-400"
-				on:click={edit}>Edit</button
+				class="px-4 py-2 bg-blue-400 hover:bg-blue-500 transition duration-300 rounded-md shadow-md text-white font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400"
+				on:click={edit}
 			>
+				Edit
+			</button>
 		{:else}
 			<button
 				type="button"
 				class="px-4 py-2 bg-green-400 hover:bg-green-500 transition duration-300 rounded-md shadow-md text-white font-semibold focus:outline-none focus:ring-2 focus:ring-green-400"
-				on:click={save}>Save</button
+				on:click={edit}
 			>
+				Save
+			</button>
 		{/if}
 		<button
 			type="button"
 			class="px-4 py-2 bg-red-400 hover:bg-red-500 transition duration-300 rounded-md shadow-md text-white font-semibold focus:outline-none focus:ring-2 focus:ring-red-400"
-			on:click={del}>Delete</button
+			on:click={() => dispatch('delete')}
 		>
+			Delete
+		</button>
 	</div>
 </div>

@@ -1,4 +1,5 @@
 import type { ClassProperties } from '$lib/TypeUtils';
+
 export class VehicleLoad {
 	constructor(
 		public width: number,
@@ -26,14 +27,6 @@ export class VehicleLoad {
 		);
 	}
 
-	public getVolume() {
-		return this.width * this.height * this.depth;
-	}
-
-	public getWeight() {
-		return this.weight;
-	}
-
 	public static fromObject(obj: ClassProperties<VehicleLoad>) {
 		return new VehicleLoad(
 			obj.width,
@@ -50,6 +43,7 @@ export class VehicleLoad {
 
 	public toObject() {
 		return {
+			id: this.id,
 			width: this.width,
 			height: this.height,
 			depth: this.depth,
@@ -57,13 +51,13 @@ export class VehicleLoad {
 			originCity: this.originCity,
 			destinationCity: this.destinationCity,
 			// status: this.status,
-			mustDeliver: this.mustDeliver,
-			id: this.id
+			mustDeliver: this.mustDeliver
 		};
 	}
 
 	public toDatabaseObject() {
 		return {
+			id: this.id,
 			width: this.width,
 			height: this.height,
 			depth: this.depth,
@@ -71,12 +65,11 @@ export class VehicleLoad {
 			origin_city: this.originCity,
 			dest_city: this.destinationCity,
 			// status: this.status,
-			must_deliver: this.mustDeliver,
-			id: this.id
+			must_deliver: this.mustDeliver
 		};
 	}
 
-	public static fromDatabaseObject(obj: Record<string, never>) {
+	public static fromDatabaseObject(obj: any) {
 		return new VehicleLoad(
 			obj.width,
 			obj.height,
@@ -88,5 +81,13 @@ export class VehicleLoad {
 			obj.must_deliver,
 			obj.id
 		);
+	}
+
+	public getVolume() {
+		return this.width * this.height * this.depth;
+	}
+
+	public getWeight() {
+		return this.weight;
 	}
 }

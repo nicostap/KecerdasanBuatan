@@ -88,11 +88,12 @@ export const actions: Actions = {
 
     createBarang: async ({ request }) => {
         const formData = Object.fromEntries(await request.formData());
-        const { Width, Height, Depth, OriginCity, DestCity, MustDeliver } = formData as { [key: string]: string };
+        const { Width, Height, Depth, Weight, OriginCity, DestCity, MustDeliver } = formData as { [key: string]: string };
     
         const width = parseFloat(Width);
         const height = parseFloat(Height);
         const depth = parseFloat(Depth);
+        const weight = parseFloat(Weight);
         const origin_city = parseFloat(OriginCity);
         const dest_city = parseFloat(DestCity);
         const must_deliver = MustDeliver == null?false:true;
@@ -103,6 +104,7 @@ export const actions: Actions = {
                     width, 
                     height, 
                     depth, 
+                    weight,
                     origin_city, 
                     dest_city, 
                     must_deliver
@@ -119,11 +121,12 @@ export const actions: Actions = {
 
     updateBarang: async ({ request }) => {
         const formData = Object.fromEntries(await request.formData());
-        const { id, Width, Height, Depth, OriginCity, DestCity, MustDeliver } = formData as { [key: string]: string };
+        const { id, Width, Height, Depth, Weight, OriginCity, DestCity, MustDeliver } = formData as { [key: string]: string };
     
         const width = parseFloat(Width);
         const height = parseFloat(Height);
         const depth = parseFloat(Depth);
+        const weight = parseFloat(Weight);
         const origin_city = parseFloat(OriginCity);
         const dest_city = parseFloat(DestCity);
         const must_deliver = MustDeliver == null?false:true;
@@ -137,6 +140,7 @@ export const actions: Actions = {
                     width, 
                     height, 
                     depth, 
+                    weight,
                     origin_city, 
                     dest_city, 
                     must_deliver
