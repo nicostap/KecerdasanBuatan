@@ -32,9 +32,13 @@
 	import CityMap from './CityMap.svelte';
 	import { createAdjacencyMatrix } from '$lib/map/AdjacencyMatrix';
 	import type { PageData } from '../$types';
-
+	import Map from './Map.svelte';
+	
 	export let data: PageData;
 
+    $: ({ locations, items, trucks } = data);
+    console.log(data)
+	
 	const defaultMobilBoxParams: ConstructorParameters<typeof MobilBox> = [
 		100, 100, 100, 100, 0.8, 1000, 10000, 0.1
 	];
@@ -495,7 +499,7 @@
 	}
 </script>
 
-<nav class="bg-blue-900 text-gray-200 py-4">
+<nav class="bg-blue-900 text-gray-200 py-4" style="z-index: 1002;">
 	<div class="container mx-20 px-2">
 		<div class="flex items-center justify-between">
 			<div class="flex items-center space-x-6">
@@ -676,8 +680,9 @@
 
 	{#if selectedSection === 'CityMap'}
 		<section id="CityMap" class="py-6 px-4">
-			<div class="bg-white rounded-lg shadow-lg p-4">
-				<CityMap cityMap={cityWeights} />
+			<div class="bg-[bisque] border-2 border-orange-300 rounded-lg shadow-lg p-4">
+				<!-- <CityMap cityMap={cityWeights} /> -->
+				<Map locations={locations} />
 			</div>
 		</section>
 	{/if}
