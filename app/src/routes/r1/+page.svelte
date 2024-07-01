@@ -31,19 +31,20 @@
 	import SummaryCharts from './SummaryCharts.svelte';
 	import CityMap from './CityMap.svelte';
 	import { createAdjacencyMatrix } from '$lib/map/AdjacencyMatrix';
-	import type { PageData } from '../$types';
+	import type { PageData } from './$types';
 	import Map from './Map.svelte';
-	
+	import { base } from '$app/paths';
+
 	export let data: PageData;
 
-    $: ({ locations, items, trucks } = data);
-    console.log(data)
-	
+	$: ({ locations, items, trucks } = data);
+
 	const defaultMobilBoxParams: ConstructorParameters<typeof MobilBox> = [
 		100, 100, 100, 100, 0.8, 1000, 10000, 0.1
 	];
 
-	let vehicles: MobilBox[] = [];
+	// This may cause so many race conditions
+	let vehicles = data.trucks.map((truck) => MobilBox.fromDatabaseObject(truck));
 
 	let vehicleLoad: VehicleLoad[] = [];
 
@@ -463,6 +464,16 @@
 	}
 
 	function deleteAllVehicles() {
+		// Delete all vehicles via API
+		fetch(`${base}/r1/api/vehicles`, {
+			method: 'DELETE',
+			body: JSON.stringify(vehicles.filter((v) => v.id !== undefined).map((v) => v.id)),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		// Empty the vehicles array
 		vehicles = [];
 	}
 
@@ -475,8 +486,23 @@
 		showGenerator = !showGenerator;
 	}
 
-	function addVehicle() {
-		vehicles = [...vehicles, new MobilBox(...defaultMobilBoxParams)];
+	function addVehicle(existingVehicle?: MobilBox) {
+		const newVehicle = existingVehicle ?? new MobilBox(...defaultMobilBoxParams);
+		vehicles = [...vehicles, newVehicle];
+
+		// Add new vehicle via API, then update the the new vehicle ID
+		fetch(`${base}/r1/api/vehicles`, {
+			method: 'POST',
+			body: JSON.stringify(newVehicle.toObject()),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+			.then((res) => res.json())
+			.then((dbVehicle) => {
+				newVehicle.id = dbVehicle.id;
+				vehicles = vehicles;
+			});
 	}
 
 	function toggleItemGenerator() {
@@ -577,16 +603,27 @@
 				{#each vehicles as vehicle, idx}
 					<div class="flex flex-col justify-center items-center">
 						<Truck
-							{idx}
+							idx={idx + 1}
 							bind:vehicle
-							on:delete={() => (vehicles = vehicles.filter((v) => v !== vehicle))}
-							on:duplicate={(e) => (vehicles = [...vehicles, e.detail.copy()])}
+							on:delete={() => {
+								vehicles = vehicles.filter((v) => v !== vehicle);
+
+								// Delete the vehicle via API
+								fetch(`${base}/r1/api/vehicles`, {
+									method: 'DELETE',
+									body: JSON.stringify([vehicle.id]),
+									headers: {
+										'Content-Type': 'application/json'
+									}
+								});
+							}}
+							on:duplicate={(e) => addVehicle(e.detail.copy())}
 						/>
 					</div>
 				{/each}
 				<button
 					class="bg-gradient-to-br from-blue-400 to-blue-500 hover:from-green-500 hover:to-blue-600 py-3 px-6 text-white font-semibold text-lg hover:shadow-lg rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition duration-300"
-					on:click={addVehicle}
+					on:click={() => addVehicle()}
 				>
 					+Add Vehicle
 				</button>
@@ -635,7 +672,7 @@
 
 			<div style="height: 20px;"></div>
 
-			<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">				
+			<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 				{#each vehicleLoad as item, idx}
 					<div class="flex flex-col justify-center items-center">
 						<Barang
@@ -682,7 +719,7 @@
 		<section id="CityMap" class="py-6 px-4">
 			<div class="bg-[bisque] border-2 border-orange-300 rounded-lg shadow-lg p-4">
 				<!-- <CityMap cityMap={cityWeights} /> -->
-				<Map locations={locations} />
+				<Map {locations} />
 			</div>
 		</section>
 	{/if}

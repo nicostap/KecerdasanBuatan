@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
+	import { base } from '$app/paths';
 	import { loadState, saveState } from '$lib/StateManager';
 	import { Random } from '$lib/r1/Random';
 	import type { AbstractDeliveryVehicle } from '$lib/r1/vehicles/AbstractDeliveryVehicle';
@@ -45,28 +46,28 @@
 	if (browser) {
 		// Load state
 		params = loadState('TruckSeed', defaults);
-		vehicles = loadState<MobilBox[]>('TruckSeed.vehicles', []).map(
-			({
-				capacityWidth,
-				capacityHeight,
-				capacityDepth,
-				capacityWeight,
-				packingFactor,
-				pricePerKm,
-				fuelPricePerLiter,
-				fuelConsumptionPerKm
-			}) =>
-				new MobilBox(
-					capacityWidth,
-					capacityHeight,
-					capacityDepth,
-					capacityWeight,
-					packingFactor,
-					pricePerKm,
-					fuelPricePerLiter,
-					fuelConsumptionPerKm
-				)
-		);
+		// vehicles = loadState<MobilBox[]>('TruckSeed.vehicles', []).map(
+		// 	({
+		// 		capacityWidth,
+		// 		capacityHeight,
+		// 		capacityDepth,
+		// 		capacityWeight,
+		// 		packingFactor,
+		// 		pricePerKm,
+		// 		fuelPricePerLiter,
+		// 		fuelConsumptionPerKm
+		// 	}) =>
+		// 		new MobilBox(
+		// 			capacityWidth,
+		// 			capacityHeight,
+		// 			capacityDepth,
+		// 			capacityWeight,
+		// 			packingFactor,
+		// 			pricePerKm,
+		// 			fuelPricePerLiter,
+		// 			fuelConsumptionPerKm
+		// 		)
+		// );
 		seed = loadState('TruckSeed.seed', defaultSeed);
 		amount = loadState('TruckSeed.amount', defaultAmount);
 	}
@@ -78,13 +79,21 @@
 
 	function reset() {
 		params = { ...defaults };
-		vehicles = [];
 		seed = defaultSeed;
 		amount = defaultAmount;
 	}
 
 	function generate() {
 		const rand = Random.fromString(seed);
+
+		// Delete all vehicles via API
+		fetch(`${base}/r1/api/vehicles`, {
+			method: 'DELETE',
+			body: JSON.stringify(vehicles.filter((v) => v.id !== undefined).map((v) => v.id)),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 
 		vehicles = Array.from({ length: amount }, (_, i) => {
 			return new MobilBox(
@@ -130,64 +139,86 @@
 				)
 			);
 		});
+
+		// Add new vehicles via API
+		vehicles.forEach((vehicle) => {
+			fetch(`${base}/r1/api/vehicles`, {
+				method: 'POST',
+				body: JSON.stringify(vehicle.toObject()),
+				headers: {
+					'Content-Type': 'application/json'
+				}
+			})
+				.then((res) => res.json())
+				.then((dbVehicle) => {
+					// Need a more proper solution for this, this is just a temporary proof of concept
+					vehicle.id = dbVehicle.id;
+					vehicles = vehicles;
+				});
+		});
 	}
 </script>
 
 <div class="bg-gray-300 rounded-lg shadow-lg p-6 w-100">
 	<div class="font-bold text-2xl mb-4 text-gray-800">Generator</div>
 	<div class="pb-2">
-	  <label class="flex items-center pb-1">
-		<span class="text-gray-700">Seed:</span>
-		<input
-		  type="text"
-		  class="ml-auto px-3 py-1 rounded-md border border-gray-400 focus:outline-none focus:border-gray-600"
-		  bind:value={seed}
-		/>
-	  </label>
-	  <label class="flex items-center pb-1">
-		<span class="text-gray-700">Amount:</span>
-		<input
-		  type="number"
-		  class="ml-auto px-3 py-1 rounded-md border border-gray-400 focus:outline-none focus:border-gray-600"
-		  bind:value={amount}
-		/>
-	  </label>
+		<label class="flex items-center pb-1">
+			<span class="text-gray-700">Seed:</span>
+			<input
+				type="text"
+				class="ml-auto px-3 py-1 rounded-md border border-gray-400 focus:outline-none focus:border-gray-600"
+				bind:value={seed}
+			/>
+		</label>
+		<label class="flex items-center pb-1">
+			<span class="text-gray-700">Amount:</span>
+			<input
+				type="number"
+				class="ml-auto px-3 py-1 rounded-md border border-gray-400 focus:outline-none focus:border-gray-600"
+				bind:value={amount}
+			/>
+		</label>
 	</div>
 	{#each editableNumbers as [key, label, title]}
-	  <div class="flex items-center pb-2">
-		<span class="text-gray-700">{label}:</span>
-		<div class="ml-auto flex items-center space-x-2">
-		  <input
-			type="number"
-			title="{title} min"
-			bind:value={params[key].min}
-			class="w-20 px-3 py-1 rounded-md border border-gray-400 focus:outline-none focus:border-gray-600"
-			step={0.001}
-		  />
-		  <input
-			type="number"
-			title="{title} max"
-			bind:value={params[key].max}
-			class="w-20 px-3 py-1 rounded-md border border-gray-400 focus:outline-none focus:border-gray-600"
-			step={0.001}
-		  />
-		  <input
-			type="number"
-			title="{title} step"
-			bind:value={params[key].step}
-			class="w-20 px-3 py-1 rounded-md border border-gray-400 focus:outline-none focus:border-gray-600"
-			step={0.001}
-		  />
+		<div class="flex items-center pb-2">
+			<span class="text-gray-700">{label}:</span>
+			<div class="ml-auto flex items-center space-x-2">
+				<input
+					type="number"
+					title="{title} min"
+					bind:value={params[key].min}
+					class="w-20 px-3 py-1 rounded-md border border-gray-400 focus:outline-none focus:border-gray-600"
+					step={0.001}
+				/>
+				<input
+					type="number"
+					title="{title} max"
+					bind:value={params[key].max}
+					class="w-20 px-3 py-1 rounded-md border border-gray-400 focus:outline-none focus:border-gray-600"
+					step={0.001}
+				/>
+				<input
+					type="number"
+					title="{title} step"
+					bind:value={params[key].step}
+					class="w-20 px-3 py-1 rounded-md border border-gray-400 focus:outline-none focus:border-gray-600"
+					step={0.001}
+				/>
+			</div>
 		</div>
-	  </div>
 	{/each}
 	<div class="mt-4 flex justify-end space-x-4">
-	  <button class="px-4 py-2 bg-green-300 hover:bg-green-400 text-white rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-400" on:click={generate}>
-		Clean & Generate
-	  </button>
-	  <button class="px-4 py-2 bg-yellow-300 hover:bg-yellow-400 text-white rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-yellow-400" on:click={reset}>
-		Reset Defaults
-	  </button>
+		<button
+			class="px-4 py-2 bg-green-300 hover:bg-green-400 text-white rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-400"
+			on:click={generate}
+		>
+			Clean & Generate
+		</button>
+		<button
+			class="px-4 py-2 bg-yellow-300 hover:bg-yellow-400 text-white rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+			on:click={reset}
+		>
+			Reset Defaults
+		</button>
 	</div>
-  </div>
-  
+</div>
