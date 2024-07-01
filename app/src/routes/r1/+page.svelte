@@ -487,7 +487,12 @@
 		vehicleLoad = [...vehicleLoad, new VehicleLoad(10, 10, 10, 10, 0, 1, false)];
 	}
 
-	let selectedSection = 'Truk';
+	let selectedSection = localStorage.getItem('selectedSection') || 'Truk';
+
+	function handleNavClick(section: string): void {
+		selectedSection = section;
+		localStorage.setItem('selectedSection', section);
+	}
 </script>
 
 <nav class="bg-blue-900 text-gray-200 py-4">
@@ -498,7 +503,7 @@
 					href="#Truk"
 					class:active={selectedSection === 'Truk'}
 					class="nav-link"
-					on:click|preventDefault={() => (selectedSection = 'Truk')}
+					on:click|preventDefault={() => handleNavClick('Truk')}
 				>
 					Truk
 				</a>
@@ -506,7 +511,7 @@
 					href="#Barang"
 					class:active={selectedSection === 'Barang'}
 					class="nav-link"
-					on:click|preventDefault={() => (selectedSection = 'Barang')}
+					on:click|preventDefault={() => handleNavClick('Barang')}
 				>
 					Barang
 				</a>
@@ -514,7 +519,7 @@
 					href="#CityMap"
 					class:active={selectedSection === 'CityMap'}
 					class="nav-link"
-					on:click|preventDefault={() => (selectedSection = 'CityMap')}
+					on:click|preventDefault={() => handleNavClick('CityMap')}
 				>
 					City Map
 				</a>
@@ -522,7 +527,7 @@
 					href="#SettingGA"
 					class:active={selectedSection === 'SettingGA'}
 					class="nav-link"
-					on:click|preventDefault={() => (selectedSection = 'SettingGA')}
+					on:click|preventDefault={() => handleNavClick('SettingGA')}
 				>
 					Setting GA
 				</a>
@@ -530,7 +535,7 @@
 					href="#Charts"
 					class:active={selectedSection === 'Charts'}
 					class="nav-link"
-					on:click|preventDefault={() => (selectedSection = 'Charts')}
+					on:click|preventDefault={() => handleNavClick('Charts')}
 				>
 					Charts
 				</a>
@@ -626,7 +631,7 @@
 
 			<div style="height: 20px;"></div>
 
-			<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+			<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">				
 				{#each vehicleLoad as item, idx}
 					<div class="flex flex-col justify-center items-center">
 						<Barang
