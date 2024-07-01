@@ -27,7 +27,7 @@
 	import EpochSummary from './EpochSummary.svelte';
 	import { Random } from '$lib/r1/Random';
 	import GaSettings, { GAMode, type GASettings } from './GASettings.svelte';
-	import { cityLabels } from '$lib/r1/Data';
+	// import { cityLabels } from '$lib/r1/Data';
 	import SummaryCharts from './SummaryCharts.svelte';
 	import CityMap from './CityMap.svelte';
 	import { createAdjacencyMatrix } from '$lib/map/AdjacencyMatrix';
@@ -43,21 +43,26 @@
 		100, 100, 100, 100, 0.8, 1000, 10000, 0.1
 	];
 
+	const defaultVehicleLoadParams: ConstructorParameters<typeof VehicleLoad> = [
+		10,10,10,10,0,1,false
+	];
+
 	// This may cause so many race conditions
 	let vehicles = data.trucks.map((truck) => MobilBox.fromDatabaseObject(truck));
 
-	let vehicleLoad: VehicleLoad[] = [];
+	// let vehicleLoad: VehicleLoad[] = [];
+	let vehicleLoad = data.items.map((item) => VehicleLoad.fromDatabaseObject(item));
 
-	const cityWeights = [
-		[0, 61, 35, 0, 91, 12],
-		[61, 0, 0, 0, 0, 90],
-		[35, 0, 0, 100, 41, 0],
-		[0, 0, 100, 0, 23, 54],
-		[91, 0, 41, 23, 0, 0],
-		[12, 90, 0, 54, 0, 0]
-	];
+	// const cityWeights = [
+	// 	[0, 61, 35, 0, 91, 12],
+	// 	[61, 0, 0, 0, 0, 90],
+	// 	[35, 0, 0, 100, 41, 0],
+	// 	[0, 0, 100, 0, 23, 54],
+	// 	[91, 0, 41, 23, 0, 0],
+	// 	[12, 90, 0, 54, 0, 0]
+	// ];
 
-	// const cityWeights = createAdjacencyMatrix(data.locations);
+	const cityWeights = createAdjacencyMatrix(data.locations);
 
 	const mapResult = generateDijkstra(cityWeights);
 	const cityMap = mapResult.distances;
@@ -215,7 +220,7 @@
 														v.weight,
 														v.originCity,
 														v.destinationCity,
-														v.status,
+														// v.status,
 														v.mustDeliver
 													)
 												])
@@ -511,11 +516,33 @@
 	}
 
 	function deleteAllItems() {
+		fetch(`${base}/r1/api/vehicleLoad`, {
+			method: 'DELETE',
+			body: JSON.stringify(vehicleLoad.filter((v) => v.id !== undefined).map((v) => v.id)),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
 		vehicleLoad = [];
 	}
 
-	function addVehicleLoad() {
-		vehicleLoad = [...vehicleLoad, new VehicleLoad(10, 10, 10, 10, 0, 1, "undelivered", false)];
+	function addVehicleLoad(existingVehicleLoad?: VehicleLoad) {
+		const newVehicleLoad = existingVehicleLoad ?? new VehicleLoad(...defaultVehicleLoadParams);
+		vehicleLoad = [...vehicleLoad, newVehicleLoad];
+
+		// Add new vehicleLoad via API, then update the the new vehicleLoad ID
+		fetch(`${base}/r1/api/vehicleLoad`, {
+			method: 'POST',
+			body: JSON.stringify(newVehicleLoad.toObject()),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+			.then((res) => res.json())
+			.then((dbVehicleLoad) => {
+				newVehicleLoad.id = dbVehicleLoad.id;
+				vehicleLoad = vehicleLoad;
+			});
 	}
 
 	let selectedSection = localStorage.getItem('selectedSection') || 'Truk';
@@ -701,20 +728,33 @@
 			<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 				{#each vehicleLoad as item, idx}
 					<div class="flex flex-col justify-center items-center">
+						<!-- svelte-ignore illegal-attribute-character -->
 						<Barang
-							{idx}
+							idx={idx + 1}
 							bind:item
-							{cityLabels}
+							{locations}
 							{cityWeights}
 							{cityMap}
-							on:delete={() => (vehicleLoad = vehicleLoad.filter((v) => v !== item))}
-							on:duplicate={(e) => (vehicleLoad = [...vehicleLoad, e.detail.copy()])}
+
+							on:delete={() => {
+								vehicleLoad = vehicleLoad.filter((v) => v !== item);
+
+								// Delete the vehicle via API
+								fetch(`${base}/r1/api/vehicleLoad`, {
+									method: 'DELETE',
+									body: JSON.stringify([item.id]),
+									headers: {
+										'Content-Type': 'application/json'
+									}
+								});
+							}}
+							on:duplicate={(e) => addVehicleLoad(e.detail.copy())}
 						/>
 					</div>
 				{/each}
 				<button
 					class="bg-gradient-to-br from-orange-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 py-3 px-6 text-white font-semibold text-lg hover:shadow-lg rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400 transition duration-300"
-					on:click={addVehicleLoad}
+					on:click={() => addVehicleLoad()}
 				>
 					+Add Item
 				</button>
@@ -905,6 +945,7 @@
 		transition: background-color 0.3s ease;
 	}
 	.popup-overlay {
+		z-index: 2002;
 		position: fixed;
 		top: 0;
 		left: 0;

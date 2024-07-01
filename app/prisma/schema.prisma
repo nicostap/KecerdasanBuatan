@@ -21,6 +21,7 @@ model barang {
   width                                 Float    @db.Float
   height                                Float    @db.Float
   depth                                 Float    @db.Float
+  weight                                Float    @db.Float
   origin_city                           Int
   dest_city                             Int
   must_deliver                          Boolean
