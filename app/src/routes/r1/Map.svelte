@@ -180,12 +180,12 @@
                     
                     <div>
                         <label for="latitude" class="text-sm text-gray-600">Latitude: </label>
-                        <input value={location.lat} type="number" name="latitude" class="rounded p-1" />
+                        <input value={location.lat} type="number" name="latitude" step={0.0000001} class="rounded p-1" />
                     </div>
                     
                     <div>
                         <label for="longitude" class="text-sm text-gray-600">Longitude: </label>
-                        <input value={location.lng} type="number" name="longitude" class="rounded p-1" />
+                        <input value={location.lng} type="number" name="longitude" step={0.0000001} class="rounded p-1" />
                     </div>
                     
                     <div class="flex lg:justify-center justify-end pt-2">
