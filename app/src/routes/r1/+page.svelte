@@ -497,6 +497,31 @@
 		selectedSection = section;
 		localStorage.setItem('selectedSection', section);
 	}
+	let filterKeyword = "";
+	let sortCriteria = "epoch";
+
+	// Computed property for filtered and sorted epoch summaries
+	$: filteredAndSortedEpochSummaries = epochSummaries
+		.filter((summary) => {
+			const regex = new RegExp(filterKeyword, "i");
+			return (
+				regex.test(summary.epoch.toString()) ||
+				(summary.description && regex.test(summary.description)) ||
+				regex.test(summary.bestFitness.toString()) ||
+				summary.topIndividuals.some((ind) =>
+					regex.test(ind.calculatedFitness.toString())
+				)
+			);
+		})
+		.sort((a, b) => {
+			if (sortCriteria === "epoch") {
+				return a.epoch - b.epoch;
+			} else if (sortCriteria === "fitness") {
+				return b.bestFitness - a.bestFitness;
+			} else {
+				return 0;
+			}
+		});
 </script>
 
 <nav class="bg-blue-900 text-gray-200 py-4" style="z-index: 1002;">
@@ -774,6 +799,39 @@
 								/>
 							{/each}
 						</div>
+					</div>
+				</section>
+				<section>
+					<!-- Filter and Sort Inputs -->
+					<div class="flex gap-4 mb-4">
+						<input
+							type="text"
+							class="border p-2"
+							placeholder="Filter by keyword"
+							bind:value={filterKeyword}
+						/>
+						<select class="border p-2" bind:value={sortCriteria}>
+							<option value="epoch">Sort by Epoch</option>
+							<option value="fitness">Sort by Best Fitness</option>
+						</select>
+					</div>
+					<h1 class="text-2xl font-bold mb-2">Epoch List</h1>
+					<div class="flex flex-col gap-2">
+						{#each filteredAndSortedEpochSummaries as epochSummary}
+							<EpochSummary
+								{cityMap}
+								{vehicles}
+								summary={epochSummary}
+								selected={epochSummary.epoch === selectedEpoch}
+								on:click={() => {
+									if (selectedEpoch === epochSummary.epoch) {
+										selectedEpoch = -1;
+									} else {
+										selectedEpoch = epochSummary.epoch;
+									}
+								}}
+							/>
+						{/each}
 					</div>
 				</section>
 			</div>
