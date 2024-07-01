@@ -17,28 +17,55 @@ model location {
 }
 
 model barang {
-  id                                    Int      @id @default(autoincrement())
-  width                                 Float    @db.Float
-  height                                Float    @db.Float
-  depth                                 Float    @db.Float
+  id                                    Int              @id @default(autoincrement())
+  width                                 Float            @db.Float
+  height                                Float            @db.Float
+  depth                                 Float            @db.Float
+  weight                                Float            @db.Float
   origin_city                           Int
   dest_city                             Int
   must_deliver                          Boolean
-  location_barang_origin_cityTolocation location @relation("barang_origin_cityTolocation", fields: [origin_city], references: [id], onUpdate: Restrict, map: "barang_ibfk_1")
-  location_barang_dest_cityTolocation   location @relation("barang_dest_cityTolocation", fields: [dest_city], references: [id], onUpdate: Restrict, map: "barang_ibfk_2")
+  location_barang_origin_cityTolocation location         @relation("barang_origin_cityTolocation", fields: [origin_city], references: [id], onUpdate: Restrict, map: "barang_ibfk_1")
+  location_barang_dest_cityTolocation   location         @relation("barang_dest_cityTolocation", fields: [dest_city], references: [id], onUpdate: Restrict, map: "barang_ibfk_2")
+  history_barang                        history_barang[]
 
   @@index([dest_city], map: "dest_city")
   @@index([origin_city], map: "origin_city")
 }
 
 model truck {
-  id                   Int   @id @default(autoincrement())
-  cap_width            Float @db.Float
-  cap_height           Float @db.Float
-  cap_depth            Float @db.Float
-  cap_weight           Float @db.Float
-  packing_factor       Float @db.Float
-  price_per_km         Float @db.Float
-  fuel_consumpt_per_km Float @db.Float
-  fuel_price_per_liter Float @db.Float
+  id                   Int                  @id @default(autoincrement())
+  cap_width            Float                @db.Float
+  cap_height           Float                @db.Float
+  cap_depth            Float                @db.Float
+  cap_weight           Float                @db.Float
+  packing_factor       Float                @db.Float
+  price_per_km         Float                @db.Float
+  fuel_consumpt_per_km Float                @db.Float
+  fuel_price_per_liter Float                @db.Float
+  history_pengiriman   history_pengiriman[]
+  history_barang       history_barang[]
+}
+
+model history_pengiriman {
+  id             Int              @id @default(autoincrement())
+  date           DateTime         @default(now())
+  truck_id       Int
+  truck          truck            @relation(fields: [truck_id], references: [id])
+  history_barang history_barang[]
+
+  @@index([date], map: "date")
+}
+
+model history_barang {
+  id                    Int                @id @default(autoincrement())
+  barang_id             Int
+  truck_id              Int
+  history_pengiriman_id Int
+  barang                barang             @relation(fields: [barang_id], references: [id])
+  truck                 truck              @relation(fields: [truck_id], references: [id])
+  history_pengiriman    history_pengiriman @relation(fields: [history_pengiriman_id], references: [id])
+
+  @@index([barang_id], map: "barang_id")
+  @@index([truck_id], map: "truck_id")
 }

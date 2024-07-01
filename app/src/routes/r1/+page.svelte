@@ -215,8 +215,9 @@
 														v.weight,
 														v.originCity,
 														v.destinationCity,
-														v.status,
-														v.mustDeliver
+														// v.status,
+														v.mustDeliver,
+														v.id
 													)
 												])
 											)
@@ -515,7 +516,7 @@
 	}
 
 	function addVehicleLoad() {
-		vehicleLoad = [...vehicleLoad, new VehicleLoad(10, 10, 10, 10, 0, 1, "undelivered", false)];
+		vehicleLoad = [...vehicleLoad, new VehicleLoad(10, 10, 10, 10, 0, 1, false)];
 	}
 
 	let selectedSection = localStorage.getItem('selectedSection') || 'Truk';
@@ -524,31 +525,29 @@
 		selectedSection = section;
 		localStorage.setItem('selectedSection', section);
 	}
-	let filterKeyword = "";
-	let sortCriteria = "epoch";
 
-	// Computed property for filtered and sorted epoch summaries
-	$: filteredAndSortedEpochSummaries = epochSummaries
-		.filter((summary) => {
-			const regex = new RegExp(filterKeyword, "i");
-			return (
-				regex.test(summary.epoch.toString()) ||
-				(summary.description && regex.test(summary.description)) ||
-				regex.test(summary.bestFitness.toString()) ||
-				summary.topIndividuals.some((ind) =>
-					regex.test(ind.calculatedFitness.toString())
-				)
-			);
-		})
-		.sort((a, b) => {
-			if (sortCriteria === "epoch") {
-				return a.epoch - b.epoch;
-			} else if (sortCriteria === "fitness") {
-				return b.bestFitness - a.bestFitness;
-			} else {
-				return 0;
-			}
-		});
+	// function useResult(epochSummary: EpochSummaryData) {
+	// 	fetch(`${base}/r1/api/epoch/update-result`, {
+	// 		method: 'POST',
+	// 		headers: {
+	// 			'Content-Type': 'application/json'
+	// 		},
+	// 		body: JSON.stringify({
+	// 			epochId: epochSummary.epoch
+	// 		})
+	// 	})
+	// 		.then((response) => {
+	// 			if (response.ok) {
+	// 				alert('Result used successfully!');
+	// 			} else {
+	// 				alert('Failed to use result.');
+	// 			}
+	// 		})
+	// 		.catch((error) => {
+	// 			console.error('Error using result:', error);
+	// 			alert('Error occurred while using result.');
+	// 		});
+	// }
 </script>
 
 <nav class="bg-blue-900 text-gray-200 py-4" style="z-index: 1002;">
@@ -821,55 +820,24 @@
 					<div class="bg-white rounded-lg shadow-lg p-4">
 						<div class="mb-6">
 							<h2 class="text-2xl font-bold text-gray-800 mb-4">Epoch List</h2>
-							<!-- Additional content related to the Epoch List -->
 						</div>
 						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 							{#each epochSummaries as epochSummary}
-								<EpochSummary
-									{cityMap}
-									{vehicles}
-									{pathMap}
-									summary={epochSummary}
-									selected={epochSummary.epoch === selectedEpoch}
-									on:click={() => {
-										selectedEpoch = selectedEpoch === epochSummary.epoch ? -1 : epochSummary.epoch;
-									}}
-								/>
+								<div>
+									<EpochSummary
+										{cityMap}
+										{vehicles}
+										{pathMap}
+										summary={epochSummary}
+										selected={epochSummary.epoch === selectedEpoch}
+										on:click={() => {
+											selectedEpoch =
+												epochSummary.epoch === selectedEpoch ? -1 : epochSummary.epoch;
+										}}
+									/>
+								</div>
 							{/each}
 						</div>
-					</div>
-				</section>
-				<section>
-					<!-- Filter and Sort Inputs -->
-					<div class="flex gap-4 mb-4">
-						<input
-							type="text"
-							class="border p-2"
-							placeholder="Filter by keyword"
-							bind:value={filterKeyword}
-						/>
-						<select class="border p-2" bind:value={sortCriteria}>
-							<option value="epoch">Sort by Epoch</option>
-							<option value="fitness">Sort by Best Fitness</option>
-						</select>
-					</div>
-					<h1 class="text-2xl font-bold mb-2">Epoch List</h1>
-					<div class="flex flex-col gap-2">
-						{#each filteredAndSortedEpochSummaries as epochSummary}
-							<EpochSummary
-								{cityMap}
-								{vehicles}
-								summary={epochSummary}
-								selected={epochSummary.epoch === selectedEpoch}
-								on:click={() => {
-									if (selectedEpoch === epochSummary.epoch) {
-										selectedEpoch = -1;
-									} else {
-										selectedEpoch = epochSummary.epoch;
-									}
-								}}
-							/>
-						{/each}
 					</div>
 				</section>
 			</div>

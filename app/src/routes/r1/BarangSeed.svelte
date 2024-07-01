@@ -132,10 +132,16 @@
 		</div>
 	{/each}
 	<div class="mt-4 flex justify-end space-x-4">
-		<button class="px-4 py-2 bg-green-300 hover:bg-green-400 text-white rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-400" on:click={generate}>
+		<button
+			class="px-4 py-2 bg-green-300 hover:bg-green-400 text-white rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-400"
+			on:click={generate}
+		>
 			Clean & Generate
 		</button>
-		<button class="px-4 py-2 bg-yellow-300 hover:bg-yellow-400 text-white rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-yellow-400" on:click={reset}>
+		<button
+			class="px-4 py-2 bg-yellow-300 hover:bg-yellow-400 text-white rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-yellow-400"
+			on:click={reset}
+		>
 			Reset Defaults
 		</button>
 	</div>

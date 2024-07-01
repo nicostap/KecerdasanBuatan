@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { base } from '$app/paths';
 	import { cityLabels } from '$lib/r1/Data';
 	import type { MobilBox } from '$lib/r1/vehicles/MobilBox';
 	import type { EpochSummaryData } from './+page.svelte';
@@ -39,11 +40,34 @@
 			)
 	);
 
-	function markItemsAsDelivered(individualIdx: number) {
-		summary.truckInfo[individualIdx].forEach(route => {
-			route.forEach(truckLoad => {
-				truckLoad[1].status = 'delivered';
-			});
+	function sendItems(individualIdx: number) {
+		let data: any = {};
+		for (let i = 0; i < summary.truckInfo[individualIdx].length; i++) {
+			const truck = vehicles[i].id;
+			const items = summary.truckInfo[individualIdx][i].map(([_, v]) => v.id);
+			// console.log({ truck, items });
+			if (truck) {
+				data[truck] = items;
+			}
+		}
+		fetch(`${base}/r1/api/deliver`, {
+			method: 'POST',
+			body: JSON.stringify(data),
+			headers: {
+				'Content-Type': 'application/json'
+			}
+			// }).then((res) => {
+			// 	// If 500, then show error message
+			// 	if (res.status === 500) {
+			// 		message = 'Something went wrong when updating vehicle';
+			// 		timeoutMessage();
+			// 	} else if (res.status === 200) {
+			// 		message = 'Saved';
+			// 		timeoutMessage();
+			// 	} else {
+			// 		message = 'Something went wrong';
+			// 		timeoutMessage();
+			// 	}
 		});
 	}
 </script>
@@ -76,11 +100,16 @@
 											<div class="flex items-start">
 												<div class="relative flex flex-col flex-row items-center mr-4">
 													<div
-														class="absolute text-3xl text-white top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center font-bold text-lg py-1" style="-webkit-text-stroke: 1px black; text-stroke: 1px black;"
+														class="absolute text-3xl text-white top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center font-bold text-lg py-1"
+														style="-webkit-text-stroke: 1px black; text-stroke: 1px black;"
 													>
 														{routeIdx}
 													</div>
-													<img class="top-1/2 left-1/2" width="100px" src="https://cdn.discordapp.com/attachments/746329602221146256/1257001438828302386/cargo-truck.png?ex=6682d150&is=66817fd0&hm=630bb962aaa3a6df8ddae896810fe8f0c16230c14fe59eee9f371fb5fc300ab9&">
+													<img
+														class="top-1/2 left-1/2"
+														width="100px"
+														src="https://cdn.discordapp.com/attachments/746329602221146256/1257001438828302386/cargo-truck.png?ex=6682d150&is=66817fd0&hm=630bb962aaa3a6df8ddae896810fe8f0c16230c14fe59eee9f371fb5fc300ab9&"
+													/>
 												</div>
 
 												<!-- Data container -->
@@ -102,15 +131,19 @@
 														{#each summary.truckInfo[individualIdx][routeIdx] as truckLoad}
 															<div class="relative flex flex-col flex-row items-center">
 																<div
-																	class="absolute text-2xl text-white top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center font-bold text-lg py-1" style="-webkit-text-stroke: 1px black; text-stroke: 1px black;"
+																	class="absolute text-2xl text-white top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center font-bold text-lg py-1"
+																	style="-webkit-text-stroke: 1px black; text-stroke: 1px black;"
 																>
 																	{truckLoad[0]}
 																</div>
-																<img class="top-1/2 left-1/2" width="32px" src="https://cdn.discordapp.com/attachments/746329602221146256/1257004450971783299/box.png?ex=6682d41f&is=6681829f&hm=dc69e9c9c81dd151888f951d903b9fe8c4976d02186f144ee536361f1679fc6f&">
+																<img
+																	class="top-1/2 left-1/2"
+																	width="32px"
+																	src="https://cdn.discordapp.com/attachments/746329602221146256/1257004450971783299/box.png?ex=6682d41f&is=6681829f&hm=dc69e9c9c81dd151888f951d903b9fe8c4976d02186f144ee536361f1679fc6f&"
+																/>
 															</div>
 														{/each}
 													</div>
-
 													<div class="text-gray-700 mb-1">
 														<span class="font-semibold">Weight:</span>
 														{summary.truckInfo[individualIdx][routeIdx].reduce(
@@ -139,10 +172,9 @@
 									</div>
 								{/each}
 							</div>
-							<!-- Button to use this result -->
-							<button 
+							<button
 								class="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-								on:click={() => markItemsAsDelivered(individualIdx)}
+								on:click={() => sendItems(individualIdx)}
 							>
 								Use this result
 							</button>
