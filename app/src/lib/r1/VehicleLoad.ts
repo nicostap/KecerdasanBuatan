@@ -1,4 +1,5 @@
 export class VehicleLoad {
+	
 	constructor(
 		public width: number,
 		public height: number,
@@ -6,6 +7,7 @@ export class VehicleLoad {
 		public weight: number,
 		public originCity: number,
 		public destinationCity: number,
+		public status: string,
 		public mustDeliver = false
 	) {}
 
@@ -17,6 +19,7 @@ export class VehicleLoad {
 			this.weight,
 			this.originCity,
 			this.destinationCity,
+			this.status,
 			this.mustDeliver
 		);
 	}

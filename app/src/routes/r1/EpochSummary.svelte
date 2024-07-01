@@ -38,6 +38,14 @@
 				)
 			)
 	);
+
+	function markItemsAsDelivered(individualIdx: number) {
+		summary.truckInfo[individualIdx].forEach(route => {
+			route.forEach(truckLoad => {
+				truckLoad[1].status = 'delivered';
+			});
+		});
+	}
 </script>
 
 <section>
@@ -50,7 +58,7 @@
 		role="button"
 		tabindex={-1}
 	>
-	Generation #{summary.epoch}
+		Generation #{summary.epoch}
 	</section>
 
 	{#if selected}
@@ -92,14 +100,14 @@
 													<div class="flex flex-wrap gap-2 mb-2">
 														<div class="font-bold mb-1">Items :</div>
 														{#each summary.truckInfo[individualIdx][routeIdx] as truckLoad}
-														<div class="relative flex flex-col flex-row items-center">
-															<div
-																class="absolute text-2xl text-white top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center font-bold text-lg py-1" style="-webkit-text-stroke: 1px black; text-stroke: 1px black;"
-															>
-																{truckLoad[0]}
+															<div class="relative flex flex-col flex-row items-center">
+																<div
+																	class="absolute text-2xl text-white top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center font-bold text-lg py-1" style="-webkit-text-stroke: 1px black; text-stroke: 1px black;"
+																>
+																	{truckLoad[0]}
+																</div>
+																<img class="top-1/2 left-1/2" width="32px" src="https://cdn.discordapp.com/attachments/746329602221146256/1257004450971783299/box.png?ex=6682d41f&is=6681829f&hm=dc69e9c9c81dd151888f951d903b9fe8c4976d02186f144ee536361f1679fc6f&">
 															</div>
-															<img class="top-1/2 left-1/2" width="32px" src="https://cdn.discordapp.com/attachments/746329602221146256/1257004450971783299/box.png?ex=6682d41f&is=6681829f&hm=dc69e9c9c81dd151888f951d903b9fe8c4976d02186f144ee536361f1679fc6f&">
-														</div>
 														{/each}
 													</div>
 
@@ -131,6 +139,13 @@
 									</div>
 								{/each}
 							</div>
+							<!-- Button to use this result -->
+							<button 
+								class="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+								on:click={() => markItemsAsDelivered(individualIdx)}
+							>
+								Use this result
+							</button>
 						</div>
 					</div>
 				{/each}

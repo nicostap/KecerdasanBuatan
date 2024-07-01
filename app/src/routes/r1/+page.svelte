@@ -214,6 +214,7 @@
 														v.weight,
 														v.originCity,
 														v.destinationCity,
+														v.status,
 														v.mustDeliver
 													)
 												])
@@ -488,7 +489,7 @@
 	}
 
 	function addVehicleLoad() {
-		vehicleLoad = [...vehicleLoad, new VehicleLoad(10, 10, 10, 10, 0, 1, false)];
+		vehicleLoad = [...vehicleLoad, new VehicleLoad(10, 10, 10, 10, 0, 1, "undelivered", false)];
 	}
 
 	let selectedSection = localStorage.getItem('selectedSection') || 'Truk';
