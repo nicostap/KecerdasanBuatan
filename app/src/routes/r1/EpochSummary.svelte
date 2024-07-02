@@ -72,19 +72,14 @@
 			headers: {
 				'Content-Type': 'application/json'
 			}
-			// }).then((res) => {
-			// 	// If 500, then show error message
-			// 	if (res.status === 500) {
-			// 		message = 'Something went wrong when updating vehicle';
-			// 		timeoutMessage();
-			// 	} else if (res.status === 200) {
-			// 		message = 'Saved';
-			// 		timeoutMessage();
-			// 	} else {
-			// 		message = 'Something went wrong';
-			// 		timeoutMessage();
-			// 	}
-		});
+		})
+			.then((response) => response.json())
+			.then((data) => {
+				alert(`Success: ${data.message}`);
+			})
+			.catch((error) => {
+				alert(`Error: ${error}`);
+			});
 	}
 </script>
 
