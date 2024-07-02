@@ -3,7 +3,7 @@ import { error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 
 export const POST: RequestHandler = async ({ request }) => {
-	const { data } = await request.json();
+	const data = await request.json();
 
 	try {
 		// Example: Update delivery_status to true for the related 'barang'
@@ -15,7 +15,8 @@ export const POST: RequestHandler = async ({ request }) => {
 			});
 
 			const items = data[truckId];
-			for (const item in items) {
+			for (const item of items) {
+				console.log(Number(item));
 				await prisma.history_barang.create({
 					data: {
 						history_pengiriman_id: hp.id,
