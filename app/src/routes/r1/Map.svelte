@@ -171,7 +171,7 @@
                   <div class="flex items-center justify-between">
                     <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold m-2 py-2 px-4 rounded focus:outline-none focus:shadow-outline">Add New</button>
                     <form action="?/updateLocation" method="POST">
-                      <input value=0  name="id" hidden/>
+                      <input value=1  name="id" hidden/>
                       <input bind:value={name} type="text" name="name" hidden/>
                       <input bind:value={lat} type="number" name="latitude" hidden readonly/>
                       <input bind:value={lng} type="number" name="longitude" hidden readonly/>
