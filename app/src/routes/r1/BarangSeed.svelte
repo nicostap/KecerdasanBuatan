@@ -83,7 +83,7 @@
 				rand.nextStepInclusive(params.height.min, params.height.max, params.height.step),
 				rand.nextStepInclusive(params.depth.min, params.depth.max, params.depth.step),
 				rand.nextStepInclusive(params.weight.min, params.weight.max, params.weight.step),
-				0,
+				1,
 				rand.nextStepInclusive(
 					params.destinationCity.min,
 					params.destinationCity.max,
