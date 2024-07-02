@@ -738,7 +738,6 @@
 							idx={idx + 1}
 							bind:item
 							{locations}
-							{cityWeights}
 							{cityMap}
 							on:delete={() => {
 								vehicleLoad = vehicleLoad.filter((v) => v !== item);
@@ -797,20 +796,6 @@
 	{#if selectedSection === 'SettingGA'}
 		<section id="SettingGA">
 			<GaSettings
-				run={() => {
-					runGa(
-						gaSettings.gaSeed,
-						gaSettings.once.targetEpochs,
-						gaSettings.once.targetIndividuals,
-						gaSettings.once.crossoverRate,
-						gaSettings.once.mutationRate,
-						gaSettings.once.crossoverMethod,
-						gaSettings.once.mutationMethod
-					);
-				}}
-				runAll={() => {
-					runGaTryAll();
-				}}
 				bind:settings={gaSettings}
 				progressMax={gaSettings.mode === GAMode.Once
 					? gaSettings.once.targetEpochs
@@ -879,7 +864,7 @@
 											selectedEpoch =
 												epochSummary.epoch === selectedEpoch ? -1 : epochSummary.epoch;
 										}}
-										locations={locations}
+										{locations}
 									/>
 								</div>
 							{/each}

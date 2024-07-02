@@ -43,7 +43,7 @@
 		// Set a new timeout message
 		messageTimeoutId = setTimeout(() => {
 			message = '';
-		}, 3000);
+		}, 3000) as any as number;
 	}
 
 	function editVehicle() {

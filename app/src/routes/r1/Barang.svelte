@@ -3,12 +3,13 @@
 	import type { AbstractDeliveryVehicle } from '$lib/r1/vehicles/AbstractDeliveryVehicle';
 	import type { VehicleLoad } from '$lib/r1/VehicleLoad';
 	import { createEventDispatcher, onDestroy } from 'svelte';
+	import type { Locations } from '$lib/TypeUtils';
 
 	export let idx: number | string = 'new';
 	export let item: VehicleLoad;
 
-	export let locations: Object[];
-	export let cityWeights: number[][];
+	export let locations: Locations;
+	// export let cityWeights: number[][];
 
 	// cityMap with dijkstra algorithm
 	export let cityMap: number[][];
@@ -44,7 +45,7 @@
 		// Set a new timeout message
 		messageTimeoutId = setTimeout(() => {
 			message = '';
-		}, 3000);
+		}, 3000) as any as number;
 	}
 
 	function edit() {

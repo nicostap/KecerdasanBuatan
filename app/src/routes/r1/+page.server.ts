@@ -84,5 +84,5 @@ export const actions: Actions = {
 		return {
 			status: 200
 		};
-	},
+	}
 };
