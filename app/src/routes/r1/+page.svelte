@@ -879,6 +879,7 @@
 											selectedEpoch =
 												epochSummary.epoch === selectedEpoch ? -1 : epochSummary.epoch;
 										}}
+										locations={locations}
 									/>
 								</div>
 							{/each}

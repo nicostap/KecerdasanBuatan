@@ -131,7 +131,7 @@ export class MobilBox extends AbstractDeliveryVehicle {
 		const destinations: number[] = [];
 
 		for (const item of items) {
-			let price = item.weight * map[0][item.destinationCity];
+			let price = item.weight * map[1][item.destinationCity - 1];
 			if (item.getVolume() <= 10000) {
 				price *= 1.0;
 			} else if (item.getVolume() <= 40000) {

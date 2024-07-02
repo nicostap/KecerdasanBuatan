@@ -13,6 +13,8 @@
 	export let cityMap: number[][];
 	export let pathMap: number[][][];
 
+	export let locations: any;
+
 	const geneColors = [
 		'bg-blue-200',
 		'bg-green-200',
@@ -42,6 +44,17 @@
 				)
 			)
 	);
+
+	function findLocationName(id: number) {
+		for (const location of locations) {
+			if (location.id == id) {
+				if (location.name.length > 15) {
+					return location.name.substring(0, 15) + '...';
+				}
+				return location.name;
+			}
+		}
+	}
 
 	function sendItems(individualIdx: number) {
 		let data: any = {};
@@ -106,14 +119,9 @@
 														class="absolute text-3xl text-white top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center font-bold text-lg py-1"
 														style="-webkit-text-stroke: 1px black; text-stroke: 1px black;"
 													>
-														{routeIdx}
+														{routeIdx + 1}
 													</div>
-													<img
-														class="top-1/2 left-1/2"
-														width="100px"
-														src={truck}
-														alt=""
-													/>
+													<img class="top-1/2 left-1/2" width="100px" src={truck} alt="" />
 												</div>
 
 												<!-- Data container -->
@@ -122,7 +130,7 @@
 													<div class="flex flex-wrap items-center mb-2">
 														{#each route as cityIdx, idx}
 															<div class="px-2">
-																{cityLabels[cityIdx]}
+																{findLocationName(cityIdx + 1)}
 															</div>
 															{#if idx < route.length - 1}
 																<span class="mx-1 text-blue-600">&rarr;</span>
@@ -138,14 +146,9 @@
 																	class="absolute text-2xl text-white top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center font-bold text-lg py-1"
 																	style="-webkit-text-stroke: 1px black; text-stroke: 1px black;"
 																>
-																	{truckLoad[0]}
+																	{truckLoad[0] + 1}
 																</div>
-																<img
-																	class="top-1/2 left-1/2"
-																	width="32px"
-																	src={box}
-																	alt=""
-																/>
+																<img class="top-1/2 left-1/2" width="32px" src={box} alt="" />
 															</div>
 														{/each}
 													</div>
