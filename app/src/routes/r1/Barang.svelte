@@ -146,6 +146,19 @@
 			readonly={!editing}
 		/>
 	</label>
+	<label title="origin city" class="flex items-center py-2">
+		<span class="text-gray-600 w-28">origin:</span>
+		<select
+			bind:value={item.originCity}
+			class="w-24 ml-auto px-3 py-1 rounded-md bg-white border border-gray-300 focus:outline-none focus:border-blue-400"
+			disabled={!editing}
+		>
+			{#each locations as city}
+				city
+				<option value={city.id}>{city.name}</option>
+			{/each}
+		</select>
+	</label>
 	<label title="destination city" class="flex items-center py-2">
 		<span class="text-gray-600 w-28">dest:</span>
 		<select
