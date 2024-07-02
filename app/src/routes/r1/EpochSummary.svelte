@@ -114,18 +114,18 @@
 									<div class="grid grid-cols-1 gap-4 p-4">
 										<div class="flex flex-col bg-blue-200 p-4 rounded-lg shadow-md">
 											<div class="flex items-start">
-												<div class="relative flex flex-col flex-row items-center mr-4">
+												<div class="relative flex flex-col flex-row items-center mr-4 w-1/4">
 													<div
 														class="absolute text-3xl text-white top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center font-bold text-lg py-1"
 														style="-webkit-text-stroke: 1px black; text-stroke: 1px black;"
 													>
 														{routeIdx + 1}
 													</div>
-													<img class="top-1/2 left-1/2" width="100px" src={truck} alt="" />
+													<img class="top-1/2 left-1/2" src={truck} alt="" />
 												</div>
 
 												<!-- Data container -->
-												<div class="flex flex-col">
+												<div class="flex flex-col w-4/5">
 													<div class="font-bold mb-1">Route :</div>
 													<div class="flex flex-wrap items-center mb-2">
 														{#each route as cityIdx, idx}

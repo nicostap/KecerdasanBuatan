@@ -132,12 +132,12 @@ export class MobilBox extends AbstractDeliveryVehicle {
 
 		for (const item of items) {
 			let price = item.weight * map[1][item.destinationCity - 1];
-			if (item.getVolume() <= 10000) {
-				price *= 1.0;
-			} else if (item.getVolume() <= 40000) {
-				price *= 1.5;
+			if (item.getVolume() < 1000) {
+				price *= 100;
+			} else if (item.getVolume() < 4000) {
+				price *= 150;
 			} else {
-				price *= 2.25;
+				price *= 200;
 			}
 			profit += price;
 
@@ -148,7 +148,6 @@ export class MobilBox extends AbstractDeliveryVehicle {
 		}
 		const result = generateTSP(map, destinations, pathMap);
 
-		// result[0] contains route, result[1] contains distance
 		return {
 			route: result.route,
 			profit:

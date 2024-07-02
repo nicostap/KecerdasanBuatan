@@ -110,10 +110,10 @@ export function generateTSP(dist, nodes, path) {
 			route = permutation[i];
 		}
 	}
-	if (nodes.length == 0) return {route: [1], dist: 0};
+	if (nodes.length == 0) return {route: [0], dist: 0};
 	route.unshift(1);
 	route.push(1);
-	const actualRoute = [1];
+	const actualRoute = [0];
 	for(let i = 0; i < route.length - 1; i++) {
 		if(route[i] == route[i + 1]) continue;
 		actualRoute.push(...path[route[i] - 1][route[i + 1] - 1]);
