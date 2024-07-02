@@ -100,22 +100,23 @@ export function generateTSP(dist, nodes, path) {
 	let minDist = Number.MAX_VALUE;
 	let route;
 	for (let i = 0; i < permutation.length; i++) {
-		let cur_dist = dist[0][permutation[i][0]];
+		let cur_dist = dist[0][permutation[i][0] - 1];
 		for (let j = 0; j < nodes.length - 1; j++) {
-			cur_dist += dist[permutation[i][j]][permutation[i][j + 1]];
+			cur_dist += dist[permutation[i][j] - 1][permutation[i][j + 1] - 1];
 		}
-		cur_dist += dist[permutation[i][nodes.length - 1]][0];
+		cur_dist += dist[permutation[i][nodes.length - 1] - 1][0];
 		if (minDist > cur_dist) {
 			minDist = cur_dist;
 			route = permutation[i];
 		}
 	}
-	if (nodes.length == 0) return {route: [0], dist: 0};
-	route.unshift(0);
-	route.push(0);
-	const actualRoute = [0];
+	if (nodes.length == 0) return {route: [1], dist: 0};
+	route.unshift(1);
+	route.push(1);
+	const actualRoute = [1];
 	for(let i = 0; i < route.length - 1; i++) {
-		actualRoute.push(...path[route[i]][route[i + 1]]);
+		if(route[i] == route[i + 1]) continue;
+		actualRoute.push(...path[route[i] - 1][route[i + 1] - 1]);
 	}
 	return {route: actualRoute, dist: minDist};
 }

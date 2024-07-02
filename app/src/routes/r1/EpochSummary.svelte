@@ -1,4 +1,7 @@
 <script lang="ts">
+	import box from '$lib/asset/box.png';
+	import truck from '$lib/asset/cargo-truck.png';
+
 	import { base } from '$app/paths';
 	import { cityLabels } from '$lib/r1/Data';
 	import type { MobilBox } from '$lib/r1/vehicles/MobilBox';
@@ -108,7 +111,8 @@
 													<img
 														class="top-1/2 left-1/2"
 														width="100px"
-														src="https://cdn.discordapp.com/attachments/746329602221146256/1257001438828302386/cargo-truck.png?ex=6682d150&is=66817fd0&hm=630bb962aaa3a6df8ddae896810fe8f0c16230c14fe59eee9f371fb5fc300ab9&"
+														src={truck}
+														alt=""
 													/>
 												</div>
 
@@ -139,7 +143,8 @@
 																<img
 																	class="top-1/2 left-1/2"
 																	width="32px"
-																	src="https://cdn.discordapp.com/attachments/746329602221146256/1257004450971783299/box.png?ex=6682d41f&is=6681829f&hm=dc69e9c9c81dd151888f951d903b9fe8c4976d02186f144ee536361f1679fc6f&"
+																	src={box}
+																	alt=""
 																/>
 															</div>
 														{/each}
