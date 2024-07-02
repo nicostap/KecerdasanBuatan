@@ -91,27 +91,6 @@
 <section>
     <div class="flex flex-col gap-4 bg-gray-200 p-4">
 		<h1 class="text-2xl font-bold mb-2">GA Settings</h1>
-        <div class="flex items-center gap-4">
-            <div class="font-bold">Mode:</div>
-            <button
-                class="px-2 py-1 bg-gray-400 rounded"
-                class:bg-orange-400={settings.mode === GAMode.Once}
-                on:click={() => {
-                    settings.mode = GAMode.Once;
-                }}
-            >
-                Run Once
-            </button>
-            <button
-                class="px-2 py-1 bg-gray-400 rounded"
-                class:bg-orange-400={settings.mode === GAMode.TryAll}
-                on:click={() => {
-                    settings.mode = GAMode.TryAll;
-                }}
-            >
-                Try All
-            </button>
-        </div>
 
         <div class="flex flex-col gap-2">
             <label class="flex items-center">
@@ -204,12 +183,6 @@
         {/if}
 
         <div class="flex items-center justify-between">
-            {#if settings.mode === GAMode.Once}
-                <button class="px-4 py-2 bg-blue-200 rounded" on:click={run}>Clear & Run</button>
-            {:else}
-                <button class="px-4 py-2 bg-blue-200 rounded" on:click={runAll}>Clear & Run All</button>
-            {/if}
-
             <div class="ml-auto">
                 {#if progress !== 0 && progress !== progressMax}
                     <div class="flex items-center">
